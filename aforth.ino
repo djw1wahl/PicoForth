@@ -52,5 +52,5 @@ extern "C" {
 }
 #endif
 //
-void loop(){ } // all the magic is up in setup()
+void loop(void){ delay(100); } // all the magic is up in setup()
 //

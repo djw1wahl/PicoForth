@@ -30,20 +30,11 @@ typedef struct{
   int32_t  rstack[STACKSIZE]; // do not change STACKSIZE
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
-  int32_t  TMPA, TMPB, TMPC, P, WP;
+  int32_t  TMPA, TMPB, TMPC;
+  int32_t  STATE, LATEST, HERE, BASE;
+  int32_t  WP;
   int8_t   ridx, pidx, fidx, pad;
   char     tib_buf[TIBSIZE];
 }MemoryImage;
 //
 extern MemoryImage M;
-//
-typedef struct{
-  char     Name[31];
-  char     nPad;
-  int8_t   NameLength;
-  int8_t   Immediate;
-  int8_t   Hidden;
-  int8_t   Pad;
-  int32_t  *code;
-}DictHeadEntry;
-//

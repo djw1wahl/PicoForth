@@ -14,6 +14,8 @@
 // usage: value = TopP; 
 //        TopP  = value;
 //
+#define DecP M.pidx--;
+//
 #define PushR Push(M.rstack,M.ridx)
 #define PopR  Pop (M.rstack,M.ridx)
 #define TopR  Top (M.rstack,M.ridx)
@@ -42,3 +44,18 @@ void _mul(void);
 void _smod(void);
 void _equal(void);
 void _nequal(void);
+void _less(void);
+void _greatr(void);
+void _lesseq(void);
+void _greatreq(void);
+void _zeroeq(void);
+void _zeroneq(void);
+void _zerolth(void);
+void _zerogth(void);
+void _zltheq(void);
+void _zgtheq(void);
+void _bitsand(void);
+void _bitsor(void);
+void _bitsxor(void);
+void _bitsnot(void);
+void _fth_exit(void);

@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "StackPrimitives.h"
+#include "VFM_Build_Primitives.h"
 //
 void ClearMemory(void){ 
 int i;  
@@ -7,7 +8,13 @@ int i;
   for(i=0;i<STACKSIZE;i++){ M.rstack[i] = 0; }
   for(i=0;i<STACKSIZE;i++){ M.pstack[i] = 0; }
   for(i=0;i<STACKSIZE;i++){ M.fstack[i] = 0.0; }  
-  M.P      =0;
+  M.TMPA =0;
+  M.TMPB =0; 
+  M.TMPC =0;
+  M.STATE=0;
+  M.LATEST=0;
+  M.HERE=0;
+  M.BASE=0;  
   M.WP     =0;
   M.ridx   =0;
   M.pidx   =0;
@@ -25,9 +32,9 @@ int i,j;
   j = M.pidx;
   for(i=0;i<8;i++){
     if(j==0){
-      sprintf(buf," %6c",'|');
+      sprintf(buf," %8c",'|');
     }else{
-      sprintf(buf," %6c",' ');
+      sprintf(buf," %8c",' ');
     }
     PrintBuf(buf);
     j--;
@@ -36,8 +43,8 @@ int i,j;
   //
   for(i=0;i<STACKSIZE;i+=8){
     for(j=0;j<8;j++){
-      //sprintf(buf," %8X",stkptr[i+j]); PrintBuf(buf);
-      sprintf(buf," %6d",stkptr[i+j]); PrintBuf(buf);
+      sprintf(buf," %8X",stkptr[i+j]); PrintBuf(buf);
+      //sprintf(buf," %6d",stkptr[i+j]); PrintBuf(buf);
     }
     PrintBuf("\n");
     if(i+j >= count)break;
@@ -45,7 +52,7 @@ int i,j;
 }
 //
 #define INIT_STK   for(int i=0;i<STACKSIZE;i++){ M.pstack[i] = 0; } M.pidx   =0; \
-                  _drop(); PushP =10; PushP =20; PushP =30; PushP =30; 
+                  _drop(); PushP =10; PushP =20; PushP =30; PushP =40; 
 //
 void TestStkOps(void){
   //
@@ -145,4 +152,91 @@ void TestStkOps(void){
   //INIT_STK
   _nequal();
   StackDump(M.pstack, 8, "<>");
+  //
+  INIT_STK
+  _less();
+  StackDump(M.pstack, 8, "<"); 
+  //
+  //INIT_STK
+  _less();
+  StackDump(M.pstack, 8, "<");  
+  //
+  INIT_STK
+  _greatr();
+  StackDump(M.pstack, 8, ">"); 
+  //
+  //INIT_STK
+  _greatr();
+  StackDump(M.pstack, 8, ">");   
+  //
+  INIT_STK
+  _lesseq();
+  StackDump(M.pstack, 8, "<="); 
+  //
+  INIT_STK
+  _greatreq();
+  StackDump(M.pstack, 8, ">=");
+  //
+  INIT_STK
+  PushP = 0;
+  _zeroeq();
+  StackDump(M.pstack, 8, "0=");  
+  //
+  INIT_STK
+  PushP = 1;
+  _zeroeq();
+  StackDump(M.pstack, 8, "0="); 
+  //
+  INIT_STK
+  PushP = 0;
+  _zeroneq();
+  StackDump(M.pstack, 8, "0<>");  
+  //
+  INIT_STK
+  PushP = 1;
+  _zeroneq();
+  StackDump(M.pstack, 8, "0<>");  
+  //
+  INIT_STK
+  PushP = 1;
+  _zerolth();
+  StackDump(M.pstack, 8, "0<");  
+  //
+  INIT_STK
+  PushP = 1;
+  _zerogth();
+  StackDump(M.pstack, 8, "0>");   
+ //
+  INIT_STK
+  PushP = 1;
+  _zltheq();
+  StackDump(M.pstack, 8, "0<=");  
+  //
+  INIT_STK
+  PushP = 1;
+  _zgtheq();
+  StackDump(M.pstack, 8, "0>=");  
+  //
+  INIT_STK
+  PushP = 0xFF00;
+  PushP = 0xAAAA;
+  _bitsand();
+  StackDump(M.pstack, 8, "AND");  
+  //
+  INIT_STK
+  PushP = 0xFF00;
+  PushP = 0xAAAA;
+  _bitsor();
+  StackDump(M.pstack, 8, "OR"); 
+  //
+  INIT_STK
+  PushP = 0xFF00;
+  PushP = 0xAAAA;
+  _bitsxor();
+  StackDump(M.pstack, 8, "XOR"); 
+  //
+  INIT_STK
+  PushP = 0xAAAA;
+  _bitsnot();
+  StackDump(M.pstack, 8, "INVERT");   
 }
