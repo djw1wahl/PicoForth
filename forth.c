@@ -8,7 +8,7 @@ MemoryImage M;
 void forth(void){
   ClearMemory();
   //TestStkOps();
-  BuildCodeEntries();
-  //Dump(0,16);
+  BuildCodeEntries(0);
+  Dump(0,0xC0);
   PrintDictEntries(M.HERE =0, 36);
 }

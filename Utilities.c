@@ -26,6 +26,7 @@ int i;
 void StackDump(int32_t *stkptr, int32_t count, char* str){
 char buf[32];
 int i,j;
+//
   PrintBuf("--- ");
   PrintBuf(str);
   PrintBuf("\n");
@@ -43,8 +44,7 @@ int i,j;
   //
   for(i=0;i<STACKSIZE;i+=8){
     for(j=0;j<8;j++){
-      sprintf(buf," %8X",stkptr[i+j]); PrintBuf(buf);
-      //sprintf(buf," %6d",stkptr[i+j]); PrintBuf(buf);
+      sprintf(buf," %8X ",stkptr[i+j]); PrintBuf(buf);
     }
     PrintBuf("\n");
     if(i+j >= count)break;
