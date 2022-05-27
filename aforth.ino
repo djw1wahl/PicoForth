@@ -47,6 +47,7 @@ extern "C" {
   }
   //
   void PrintBuf(char* buf){ for(int32_t i=0;i<strlen(buf);i++){ Serial.print(buf[i]); } }
+  void PrintNumber(int32_t n){ char abuf[16]; sprintf(abuf," %d", n); PrintBuf(abuf); }
   //
 #ifdef __cplusplus  
 }

@@ -8,6 +8,7 @@
 #define FLASH_SECTORS_AVAILABLE 256
 #define FLASH_SECTORS_OFFSET 1024 * 1024
 #define PAGES_PER_SECTOR 16
+#define PAGE_SIZE 256
 #define MEMSIZE 4096 * 4
 #define TIBSIZE 64
 #define STACKSIZE 256
@@ -18,6 +19,7 @@ extern "C" {
   void    serial_putchar(char);
   int32_t serial_getchar(void);
   void    PrintBuf(char*);
+  void    PrintNumber(int32_t);
 #ifdef __cplusplus
 }
 #endif
@@ -27,12 +29,13 @@ typedef struct{
     uint32_t data32[MEMSIZE];
     uint8_t  data08[MEMSIZE*4];
   };
+  int32_t  Page_Buf[PAGE_SIZE];
   int32_t  rstack[STACKSIZE]; // do not change STACKSIZE
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
   int32_t  TMPA, TMPB, TMPC;
   int32_t  STATE, LATEST, HERE, BASE;
-  int32_t  WP;
+  int32_t  WP, PicoIDbuf;
   int8_t   ridx, pidx, fidx, pad;
   char     tib_buf[TIBSIZE];
 }MemoryImage;

@@ -1,6 +1,9 @@
 #include "Common.h"
 #include "StackPrimitives.h"
 #include "VFM_Build_Primitives.h"
+#include "PICOprimitivesGPIO.h"
+#include "PicoPrimitivesADC.h"
+#include "PicoStoreSPI.h"
 //
 enum RunTypes { _TYPE0, _TYPE1 }; // these names will change
 //
@@ -101,4 +104,36 @@ void BuildCodeEntries(int32_t where){
   DefCodeEntry( "OR"    , false, false, _TYPE1, _bitsor);
   DefCodeEntry( "XOR"   , false, false, _TYPE1, _bitsxor);
   DefCodeEntry( "INVERT", false, false, _TYPE1, _bitsnot);
+  //
+  DefCodeEntry( "TEMPON",    false, false, _TYPE1, pico_temp_on);
+  DefCodeEntry( "TEMPOFF",   false, false, _TYPE1, pico_temp_off);
+  DefCodeEntry( "ADC_INIT",  false, false, _TYPE1, pico_adc_init);
+  DefCodeEntry( "ADC_GPIO",  false, false, _TYPE1, pico_adc_gpio_init);
+  DefCodeEntry( "ADC_INPUT", false, false, _TYPE1, pico_adc_select_input);
+  DefCodeEntry( "ADC_READ",  false, false, _TYPE1, pico_adc_read);  
+  //
+  DefCodeEntry( "IO_GET_DIR",  false, false, _TYPE1, pico_gpio_get_dir);
+  DefCodeEntry( "IO_GET_MA",   false, false, _TYPE1, pico_gpio_get_drive_strength);
+  DefCodeEntry( "IO_GET_DT",   false, false, _TYPE1, pico_gpio_get_slew_rate);
+  DefCodeEntry( "IO_NO_PULL",  false, false, _TYPE1, pico_gpio_disable_pulls);  
+  DefCodeEntry( "IO_PULLUP",   false, false, _TYPE1, pico_gpio_pull_up);
+  DefCodeEntry( "IO_PULLDN",   false, false, _TYPE1, pico_gpio_pull_down);
+  DefCodeEntry( "IO_PULLUP?",  false, false, _TYPE1, pico_gpio_is_pulled_up);
+  DefCodeEntry( "IO_PULLDN?",  false, false, _TYPE1, pico_gpio_is_pulled_down);  
+  DefCodeEntry( "IO_HYSTO?",   false, false, _TYPE1, pico_gpio_is_input_hysteresis_enabled);
+  DefCodeEntry( "IO_GET",      false, false, _TYPE1, pico_gpio_get);
+  DefCodeEntry( "IO_INIT",     false, false, _TYPE1, pico_gpio_init);
+  DefCodeEntry( "IO_SET_DIR",  false, false, _TYPE1, pico_gpio_set_dir);  
+  DefCodeEntry( "IO_PUT",      false, false, _TYPE1, pico_gpio_put);
+  DefCodeEntry( "IO_SET_MA",   false, false, _TYPE1, pico_gpio_set_drive_strength);
+  DefCodeEntry( "IO_SET_DT",   false, false, _TYPE1, pico_gpio_set_slew_rate);
+  DefCodeEntry( "IO_HYSTO_ON", false, false, _TYPE1, pico_gpio_set_input_hysteresis_enabled);  
+  //
+  DefCodeEntry( "FLASH_ERASE",    false, false, _TYPE1, pico_flash_sector_erase);  
+  DefCodeEntry( "FLASH!",         false, false, _TYPE1, pico_flash_store);  
+  DefCodeEntry( "FLASH_LIST",     false, false, _TYPE1, pico_flash_page_list);  
+  DefCodeEntry( "FLASH_ID",       false, false, _TYPE1, pico_flash_get_unique_id);  
+  DefCodeEntry( "FLASH_PATRN",    false, false, _TYPE1, pico_page_pattern);  
+  DefCodeEntry( "FLASH_WIPE",     false, false, _TYPE1, pico_WipeAllSectors);  
+  DefCodeEntry( "FLASH_GET_LINE", false, false, _TYPE1, pico_Get_Page_Line);  
 }

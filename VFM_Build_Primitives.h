@@ -3,8 +3,8 @@ typedef struct{
   int8_t   Immediate;
   int8_t   Hidden;  
   int16_t  RunType;  
-  void(*code)(void);
-  void(*done)(void);
+  void     (*code)(void);
+  void     (*done)(void);
   char     Name[32]; 
 }DictCodeEntry;
 //
