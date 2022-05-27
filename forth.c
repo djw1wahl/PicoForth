@@ -10,5 +10,5 @@ void forth(void){
   //TestStkOps();
   BuildCodeEntries(0);
   Dump(0,0xC0);
-  PrintDictEntries(M.HERE =0, 36);
+  PrintDictEntries(36); 
 }
