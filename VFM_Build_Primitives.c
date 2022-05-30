@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "StackPrimitives.h"
+#include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
 #include "PICOprimitivesGPIO.h"
 #include "PicoPrimitivesADC.h"
@@ -20,7 +21,7 @@ int len, padcount=1;
   entry->Hidden    = _hidden;
   entry->RunType   = _run;
   entry->code      = _code;
-  entry->done      = _fth_exit;
+  entry->done      = _fexit;
   entry->Link      = M.LATEST;
   M.LATEST = M.HERE;
   M.HERE += (16 + strlen(_name) + padcount) /4;  

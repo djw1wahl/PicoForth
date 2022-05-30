@@ -9,7 +9,7 @@
 #define PushP Push(M.pstack,M.pidx)
 // usage: PushP = value;
 #define PopP  Pop (M.pstack,M.pidx)
-// usage: value = PopP
+// usage: value = PopP;
 #define TopP  Top (M.pstack,M.pidx)
 // usage: value = TopP; 
 //        TopP  = value;
@@ -58,4 +58,11 @@ void _bitsand(void);
 void _bitsor(void);
 void _bitsxor(void);
 void _bitsnot(void);
-void _fth_exit(void);
+//
+void _tor(void);
+void _fromr(void);
+void _rspfetch(void);
+void _rspstore(void);
+void _rdrop(void);
+void _dspfetch(void);
+void _dspstore(void);

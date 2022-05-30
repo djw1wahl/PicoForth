@@ -8,9 +8,9 @@ int i;
   for(i=0;i<STACKSIZE;i++){ M.rstack[i] = 0; }
   for(i=0;i<STACKSIZE;i++){ M.pstack[i] = 0; }
   for(i=0;i<STACKSIZE;i++){ M.fstack[i] = 0.0; }  
-  M.TMPA =0;
-  M.TMPB =0; 
-  M.TMPC =0;
+  M.iA32 =0;
+  M.iB32 =0; 
+  M.iC32 =0;
   M.STATE=0;
   M.LATEST=0;
   M.HERE=0;

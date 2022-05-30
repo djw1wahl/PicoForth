@@ -33,8 +33,11 @@ typedef struct{
   int32_t  rstack[STACKSIZE]; // do not change STACKSIZE
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
-  int32_t  TMPA, TMPB, TMPC;
-  int32_t  STATE, LATEST, HERE, BASE;
+  int32_t  iA32,   iB32,  iC32;
+  int32_t  *pA32, *pB32, *pC32;  
+  int8_t   iA8,   iB8,  iC8,  iD8;
+  int8_t   *pA8, *pB8, *pC8, *pD8;
+  int32_t  STATE, LATEST, HERE, BASE, S0;
   int32_t  WP, PicoIDbuf;
   int8_t   ridx, pidx, fidx, pad;
   char     tib_buf[TIBSIZE];
