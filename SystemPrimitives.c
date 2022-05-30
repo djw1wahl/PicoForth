@@ -1,5 +1,7 @@
 #include "Common.h"
 #include "StackPrimitives.h"
+#include "SystemPrimitives.h"
+#include "VFM_Build_Primitives.h"
 //
 void _fnext(void);
 void _fexit(void){ M.WP = PopR; } // Word Pointer gets top of return stack--
@@ -33,7 +35,7 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
                            switch(str[i]){
                             case '-': sign = -1; str++; i=0; len--; break;
                             case '+':            str++; i=0; len--; break;
-                           }
+                           }                           
                            // need to test following chars to see if they are digits in the current BASE
                            const char *charlowlist  = "0123456789abcdefghijklmnopqrstuvwxyz";
                            const char *charhighlist = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -43,7 +45,7 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
                               else{
                                if(str[i] == charhighlist[j]){ match = true; break; } 
                               }               
-                             }
+                             }       
                              if(match){ // do something smart
                               accum *= M.BASE;  accum += j;                           
                              }else { // failure 
@@ -54,7 +56,56 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
                            accum *= sign;
                            PushP = accum; PushP = false; // pushing false indicates success
 }
-void _find(void){ }
+/*
+  void testnumber(void){
+    static char* astring = "0110111110100101";
+    PushP = (int32_t) astring;
+    M.BASE = 2;
+    _number();
+    bool result = PopP;
+    int32_t num = PopP;
+    char buf[32];
+    sprintf(buf,"NUMBER = %X %d\n",num, result);
+    PrintBuf(buf);
+  }
+*/
+void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which are null terminated
+                  // ( string -- dict_adr_of_head | minus_one_if_not_found) )
+                  // not found == -1 so that the entry at 0 can be detected
+                  //
+                  char*   str  = (char*)PopP;     // get the string adr
+                  int32_t latest = M.LATEST;
+                  do{
+                      DictCodeEntry *start = (DictCodeEntry*) &M.data32[latest] ;
+                      if(strcmp(start->Name, str) == 0){ // found                        
+                        if(start->Hidden){ // do not FIND Hidden entries
+                          PushP = -1; // not found
+                          return;
+                        }else{ // Found 
+                          PushP = latest;
+                          return;
+                        }
+                      }
+                      latest = start->Link;             
+                  }while(latest >= 0);     
+                  PushP = -1; // not found             
+}
+/*
+  void testfind(char* astring){
+    DictCodeEntry* entry;
+    PushP = (int32_t) astring;
+    _find();
+    int32_t idx = PopP;
+    entry = (DictCodeEntry*) &M.data32[idx];
+    char buf[40];
+    if(idx == -1){ // -1 outside the range of M.data32 array
+      sprintf(buf,"(-1) %s Not Found.\n", astring); PrintBuf(buf);
+      return;
+    }
+    sprintf(buf,"Find Found = %s\n",entry->Name);
+    PrintBuf(buf);
+  }
+*/
 void _tcfa(void){ }
 void _tdfa(void){ }
 void _interpret(void){ }

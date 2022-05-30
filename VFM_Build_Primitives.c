@@ -137,4 +137,18 @@ void BuildCodeEntries(int32_t where){
   DefCodeEntry( "FLASH_PATRN",    false, false, _TYPE1, pico_page_pattern);  
   DefCodeEntry( "FLASH_WIPE",     false, false, _TYPE1, pico_WipeAllSectors);  
   DefCodeEntry( "FLASH_GET_LINE", false, false, _TYPE1, pico_Get_Page_Line);  
+  //
+  DefCodeEntry( "!",      false, false, _TYPE1, _store);   
+  DefCodeEntry( "@",      false, false, _TYPE1, _fetch);  
+  DefCodeEntry( "+!",     false, false, _TYPE1, _addstore);  
+  DefCodeEntry( "-!",     false, false, _TYPE1, _substore);  
+  DefCodeEntry( "C!",     false, false, _TYPE1, _storebyte);   
+  DefCodeEntry( "C@",     false, false, _TYPE1, _fetchbyte);  
+  DefCodeEntry( "C@C!",   false, false, _TYPE1, _ccopy);  
+  DefCodeEntry( "CMOVE",  false, false, _TYPE1, _cmove);  
+  DefCodeEntry( "KEY",    false, false, _TYPE1, _key);   
+  DefCodeEntry( "EMIT",   false, false, _TYPE1, _emit);  
+  DefCodeEntry( "NUMBER", false, false, _TYPE1, _number);  
+  DefCodeEntry( "FIND",   false, false, _TYPE1, _find);    
+  //    
 }

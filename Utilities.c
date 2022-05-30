@@ -50,7 +50,7 @@ int i,j;
     if(i+j >= count)break;
   }
 }
-//
+/*
 #define INIT_STK   for(int i=0;i<STACKSIZE;i++){ M.pstack[i] = 0; } M.pidx   =0; \
                   _drop(); PushP =10; PushP =20; PushP =30; PushP =40; 
 //
@@ -240,3 +240,4 @@ void TestStkOps(void){
   _bitsnot();
   StackDump(M.pstack, 8, "INVERT");   
 }
+*/
