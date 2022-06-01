@@ -77,7 +77,7 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
                   char*   str  = (char*)PopP;     // get the string adr
                   int32_t latest = M.LATEST;
                   do{
-                      DictCodeEntry *start = (DictCodeEntry*) &M.data32[latest] ;
+                      DictEntry *start = (DictEntry*) &M.data32[latest] ;
                       if(strcmp(start->Name, str) == 0){ // found                        
                         if(start->Hidden){ // do not FIND Hidden entries
                           PushP = 0; // not found
@@ -93,11 +93,11 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
 }
 #ifdef TEST_FIND
   void testfind(char* astring){
-    DictCodeEntry* entry;
+    DictEntry* entry;
     PushP = (int32_t) astring;
     _find();
     int32_t idx = PopP;
-    entry = (DictCodeEntry*) &M.data32[idx];
+    entry = (DictEntry*) &M.data32[idx];
     char buf[40];
     if(idx == 0){ 
       sprintf(buf,"%s Not Found.\n", astring); PrintBuf(buf);
@@ -108,14 +108,16 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
   }
 #endif
 void _tcfa(void){ 
-                    DictCodeEntry*    entry = (DictCodeEntry*) PopP;
-                    PushP = (int32_t) entry->cfa;
+                    DictEntry*    entry = (DictEntry*) PopP;
+                    PushP = (int32_t) M.data32[entry->pfa]; // now TopP contains (void)(*)(void) of codetype for this word
 }
 void _tdfa(void){ 
-                    DictCodeEntry*    entry = (DictCodeEntry*) PopP;
-                    PushP = (int32_t) entry->code;
+                    DictEntry*    entry = (DictEntry*) PopP;
+                    PushP = (int32_t) M.data32[(entry->pfa)+4]; // now TopP contains first parameter word, agnostic type
 }
-void _interpret(void){ }
+void _interpret(void){ 
+  
+}
 void _create(void){ }
 void _comma(void){ }
 void _lbrac(void){ }

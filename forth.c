@@ -14,7 +14,7 @@ void forth(void){
   TestStkOps();
 #endif
 #ifdef PRINT_DICT_ENTRIES
-  //Dump(DICTINARY_START,512+128);
+  //Dump(DICTINARY_START);
   PrintDictEntries();
 #endif 
 #ifdef TEST_NUMBER

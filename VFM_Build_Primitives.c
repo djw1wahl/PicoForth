@@ -2,13 +2,13 @@
 #include "StackPrimitives.h"
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
-#include "PICOprimitivesGPIO.h"
-#include "PicoPrimitivesADC.h"
-#include "PicoStoreSPI.h"
+#include "picoprimitivesGPIO.h"
+#include "picoPrimitivesADC.h"
+#include "picoStoreSPI.h"
 //
-void DefCodeEntry(char* _name, int32_t _immediate, int32_t _hidden, void (*_run)(void), void (*_code)(void)){
-int32_t len, padcount=1, tmp;
-  DictCodeEntry *entry = (DictCodeEntry *) &(M.data32[M.HERE]);
+void DefHeader(char* _name, int32_t _immediate, int32_t _hidden){
+int32_t len, padcount=1;
+  DictEntry *entry = (DictEntry *) &(M.data32[M.HERE]);
   strcpy(entry->Name, _name);            // null terminated
   len = strlen(_name);
   entry->Len = len;
@@ -18,42 +18,54 @@ int32_t len, padcount=1, tmp;
   }while(true);
   entry->Immediate |= _immediate;
   entry->Hidden    |= _hidden;
-  entry->cfa       = _run;
-  entry->code      = _code;
-  entry->done      = _fexit;
-  entry->Link      = M.LATEST;
-  M.LATEST         = M.HERE;
-  tmp              = sizeof(entry->Link) + sizeof(entry->Immediate);
-  tmp             += sizeof(entry->cfa)  + sizeof(entry->code) + sizeof(entry->done);
-  M.HERE          += ( tmp + strlen(_name) + padcount ) /4;  
+  entry->Link       = M.LATEST;
+  M.LATEST          = M.HERE;
+  M.HERE           += ( sizeof(entry->Link) + \
+                        sizeof(entry->Len) + \
+                        sizeof(entry->Immediate) + \
+                        sizeof(entry->Hidden) + \
+                        sizeof(entry->NumParam) + \
+                        sizeof(entry->pfa) + \
+                        strlen(_name) + 
+                        padcount ) /4;  
+  entry->pfa        = M.HERE;
+}
+//
+void InsertParameter(int32_t parameter){ // a LOT Like <comma>
+   DictEntry *entry = (DictEntry *) &(M.data32[M.LATEST]);
+   entry->NumParam++;
+   M.data32[M.HERE++] = parameter;
 }
 //
 #ifdef PRINT_DICT_ENTRIES
-void Dump(int32_t start, int32_t count){
-char buf [16], ac;
+void Dump(int32_t start){
+int32_t count=0;
+char buf[16], ac;
 union{
   int32_t val;
   char cval[4];
 }vals;
-  for(int i=start;i<count;i++){
-    sprintf(buf," %4.4X %8.8X ",i, M.data32[i]); PrintBuf(buf);
-    vals.val = M.data32[i];
+  do{
+    sprintf(buf," %4.4X %8.8X ",start, M.data32[start]); PrintBuf(buf);
+    vals.val = M.data32[start];
+    if(M.data32[start++] == 0){ count++; }else { count = 0; }
     for(int k=0;k<4;k++){
       ac = vals.cval[k];
       if((ac>32) && (ac<126)){ sprintf(buf,"%1c",ac); PrintBuf(buf); }
       else                   { sprintf(buf," "); PrintBuf(buf); }      
     }
     PrintBuf("\n");
-  }
+    if(start>=MEMSIZE)count=8;
+  }while(count<8); // stops after 8 consecutive empty locations or end of memory
 }
 //
 void PrintDictEntries(void){
 char buf[40];  
-int32_t len, i;
+int32_t len, i, j;
 bool alldone = false;
-DictCodeEntry *thecode;
+DictEntry *thecode;
  do{
-  thecode = (DictCodeEntry *) &(M.data32[M.LATEST]);
+  thecode = (DictEntry *) &(M.data32[M.LATEST]);
   if(thecode->Link == 0)alldone = true;
   len = strlen(thecode->Name);
                for(i=0;i<len;i++){    sprintf(buf,"%c",thecode->Name[i]);                   PrintBuf(buf); }
@@ -64,10 +76,12 @@ DictCodeEntry *thecode;
   if((thecode->Immediate & IMMED) != 0){  sprintf(buf,"  I");                               PrintBuf(buf); }
   if((thecode->Hidden    & HIDEN) == 0){  sprintf(buf," ~H");                               PrintBuf(buf); }
   if((thecode->Hidden    & HIDEN) != 0){  sprintf(buf,"  H");                               PrintBuf(buf); }  
-                                      sprintf(buf,"   Do = %8X", thecode->cfa);             PrintBuf(buf);                
-                                      sprintf(buf," Code = %8X",thecode->code);             PrintBuf(buf);                                       
-                                      sprintf(buf," Done = %8X",thecode->done);             PrintBuf(buf);                                          
-                                                                                            PrintBuf("\n");
+                            sprintf(buf," (PFA) = %8X", (uint32_t)thecode->pfa);            PrintBuf(buf); 
+  j = thecode->pfa;                          
+  for(i=0;i<thecode->NumParam;i++){
+    sprintf(buf," P[%2d] = %8X", i, M.data32[j++]); PrintBuf(buf);
+  }
+  PrintBuf("\n");
   M.LATEST = thecode->Link;
  }while(!alldone);
 }
@@ -76,84 +90,84 @@ DictCodeEntry *thecode;
 void BuildCodeEntries(int32_t where){
   M.HERE = where;
   //            Name      Immed  Hidden  type    code
-  DefCodeEntry( "DUP"   , NADAZ, NADAZ, _dothis, _dup); 
-  DefCodeEntry( "DROP"  , NADAZ, NADAZ, _dothis, _drop); 
-  DefCodeEntry( "SWAP"  , NADAZ, NADAZ, _dothis, _swap); 
-  DefCodeEntry( "OVER"  , NADAZ, NADAZ, _dothis, _over );
-  DefCodeEntry( "ROT"   , NADAZ, NADAZ, _dothis, _prot );
-  DefCodeEntry( "-ROT"  , NADAZ, NADAZ, _dothis, _nrot); 
-  DefCodeEntry( "2DROP" , NADAZ, NADAZ, _dothis, _2drop);   
-  DefCodeEntry( "2DUP"  , NADAZ, NADAZ, _dothis, _2dup );
-  DefCodeEntry( "2SWAP" , NADAZ, NADAZ, _dothis, _2swap);
-  DefCodeEntry( "?DUP"  , NADAZ, NADAZ, _dothis, _qdup);
-  DefCodeEntry( "1+"    , NADAZ, NADAZ, _dothis, _onep);
-  DefCodeEntry( "1-"    , NADAZ, NADAZ, _dothis, _onen);
-  DefCodeEntry( "4+"    , NADAZ, NADAZ, _dothis, _fourp);
-  DefCodeEntry( "4-"    , NADAZ, NADAZ, _dothis, _fourn);
-  DefCodeEntry( "+"     , NADAZ, NADAZ, _dothis, _add);
-  DefCodeEntry( "-"     , NADAZ, NADAZ, _dothis, _sub);
-  DefCodeEntry( "*"     , NADAZ, NADAZ, _dothis, _mul);
-  DefCodeEntry( "/MOD"  , NADAZ, NADAZ, _dothis, _smod);
-  DefCodeEntry( "="     , NADAZ, NADAZ, _dothis, _equal);
-  DefCodeEntry( "<>"    , NADAZ, NADAZ, _dothis, _nequal);
-  DefCodeEntry( "<"     , NADAZ, NADAZ, _dothis, _less);
-  DefCodeEntry( ">"     , NADAZ, NADAZ, _dothis, _greatr);
-  DefCodeEntry( "<="    , NADAZ, NADAZ, _dothis, _lesseq);
-  DefCodeEntry( ">="    , NADAZ, NADAZ, _dothis, _greatreq);
-  DefCodeEntry( "0="    , NADAZ, NADAZ, _dothis, _zeroeq);
-  DefCodeEntry( "0<>"   , NADAZ, NADAZ, _dothis, _zeroneq);
-  DefCodeEntry( "0<"    , NADAZ, NADAZ, _dothis, _zerolth);
-  DefCodeEntry( "0>"    , NADAZ, NADAZ, _dothis, _zerogth);
-  DefCodeEntry( "0<="   , NADAZ, NADAZ, _dothis, _zltheq);
-  DefCodeEntry( "0>="   , NADAZ, NADAZ, _dothis, _zgtheq);
-  DefCodeEntry( "AND"   , NADAZ, NADAZ, _dothis, _bitsand);
-  DefCodeEntry( "OR"    , NADAZ, NADAZ, _dothis, _bitsor);
-  DefCodeEntry( "XOR"   , NADAZ, NADAZ, _dothis, _bitsxor);
-  DefCodeEntry( "INVERT", NADAZ, NADAZ, _dothis, _bitsnot);
+  DefHeader( "DUP"   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _dup); 
+  DefHeader( "DROP"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _drop); 
+  DefHeader( "SWAP"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _swap); 
+  DefHeader( "OVER"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _over );
+  DefHeader( "ROT"   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _prot );
+  DefHeader( "-ROT"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _nrot); 
+  DefHeader( "2DROP" , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _2drop);   
+  DefHeader( "2DUP"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _2dup );
+  DefHeader( "2SWAP" , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _2swap);
+  DefHeader( "?DUP"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _qdup);
+  DefHeader( "1+"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _onep);
+  DefHeader( "1-"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _onen);
+  DefHeader( "4+"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fourp);
+  DefHeader( "4-"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fourn);
+  DefHeader( "+"     , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _add);
+  DefHeader( "-"     , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _sub);
+  DefHeader( "*"     , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _mul);
+  DefHeader( "/MOD"  , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _smod);
+  DefHeader( "="     , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _equal);
+  DefHeader( "<>"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _nequal);
+  DefHeader( "<"     , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _less);
+  DefHeader( ">"     , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _greatr);
+  DefHeader( "<="    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _lesseq);
+  DefHeader( ">="    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _greatreq);
+  DefHeader( "0="    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _zeroeq);
+  DefHeader( "0<>"   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _zeroneq);
+  DefHeader( "0<"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _zerolth);
+  DefHeader( "0>"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _zerogth);
+  DefHeader( "0<="   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _zltheq);
+  DefHeader( "0>="   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _zgtheq);
+  DefHeader( "AND"   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _bitsand);
+  DefHeader( "OR"    , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _bitsor);
+  DefHeader( "XOR"   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _bitsxor);
+  DefHeader( "INVERT", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _bitsnot);
   //
-  DefCodeEntry( "TEMPON",    NADAZ, NADAZ, _dothis, pico_temp_on);
-  DefCodeEntry( "TEMPOFF",   NADAZ, NADAZ, _dothis, pico_temp_off);
-  DefCodeEntry( "ADC_INIT",  NADAZ, NADAZ, _dothis, pico_adc_init);
-  DefCodeEntry( "ADC_GPIO",  NADAZ, NADAZ, _dothis, pico_adc_gpio_init);
-  DefCodeEntry( "ADC_INPUT", NADAZ, NADAZ, _dothis, pico_adc_select_input);
-  DefCodeEntry( "ADC_READ",  NADAZ, NADAZ, _dothis, pico_adc_read);  
+  DefHeader( "TEMPON",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_temp_on);
+  DefHeader( "TEMPOFF",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_temp_off);
+  DefHeader( "ADC_INIT",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_adc_init);
+  DefHeader( "ADC_GPIO",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_adc_gpio_init);
+  DefHeader( "ADC_INPUT", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_adc_select_input);
+  DefHeader( "ADC_READ",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_adc_read);  
   //
-  DefCodeEntry( "IO_GET_DIR",  NADAZ, NADAZ, _dothis, pico_gpio_get_dir);
-  DefCodeEntry( "IO_GET_MA",   NADAZ, NADAZ, _dothis, pico_gpio_get_drive_strength);
-  DefCodeEntry( "IO_GET_DT",   NADAZ, NADAZ, _dothis, pico_gpio_get_slew_rate);
-  DefCodeEntry( "IO_NO_PULL",  NADAZ, NADAZ, _dothis, pico_gpio_disable_pulls);  
-  DefCodeEntry( "IO_PULLUP",   NADAZ, NADAZ, _dothis, pico_gpio_pull_up);
-  DefCodeEntry( "IO_PULLDN",   NADAZ, NADAZ, _dothis, pico_gpio_pull_down);
-  DefCodeEntry( "IO_PULLUP?",  NADAZ, NADAZ, _dothis, pico_gpio_is_pulled_up);
-  DefCodeEntry( "IO_PULLDN?",  NADAZ, NADAZ, _dothis, pico_gpio_is_pulled_down);  
-  DefCodeEntry( "IO_HYSTO?",   NADAZ, NADAZ, _dothis, pico_gpio_is_input_hysteresis_enabled);
-  DefCodeEntry( "IO_GET",      NADAZ, NADAZ, _dothis, pico_gpio_get);
-  DefCodeEntry( "IO_INIT",     NADAZ, NADAZ, _dothis, pico_gpio_init);
-  DefCodeEntry( "IO_SET_DIR",  NADAZ, NADAZ, _dothis, pico_gpio_set_dir);  
-  DefCodeEntry( "IO_PUT",      NADAZ, NADAZ, _dothis, pico_gpio_put);
-  DefCodeEntry( "IO_SET_MA",   NADAZ, NADAZ, _dothis, pico_gpio_set_drive_strength);
-  DefCodeEntry( "IO_SET_DT",   NADAZ, NADAZ, _dothis, pico_gpio_set_slew_rate);
-  DefCodeEntry( "IO_HYSTO_ON", NADAZ, NADAZ, _dothis, pico_gpio_set_input_hysteresis_enabled);  
+  DefHeader( "IO_GET_DIR",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_get_dir);
+  DefHeader( "IO_GET_MA",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_get_drive_strength);
+  DefHeader( "IO_GET_DT",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_get_slew_rate);
+  DefHeader( "IO_NO_PULL",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_disable_pulls);  
+  DefHeader( "IO_PULLUP",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_pull_up);
+  DefHeader( "IO_PULLDN",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_pull_down);
+  DefHeader( "IO_PULLUP?",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_is_pulled_up);
+  DefHeader( "IO_PULLDN?",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_is_pulled_down);  
+  DefHeader( "IO_HYSTO?",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_is_input_hysteresis_enabled);
+  DefHeader( "IO_GET",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_get);
+  DefHeader( "IO_INIT",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_init);
+  DefHeader( "IO_SET_DIR",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_set_dir);  
+  DefHeader( "IO_PUT",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_put);
+  DefHeader( "IO_SET_MA",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_set_drive_strength);
+  DefHeader( "IO_SET_DT",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_set_slew_rate);
+  DefHeader( "IO_HYSTO_ON", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_gpio_set_input_hysteresis_enabled);  
   //
-  DefCodeEntry( "FLASH_ERASE",    NADAZ, NADAZ, _dothis, pico_flash_sector_erase);  
-  DefCodeEntry( "FLASH!",         NADAZ, NADAZ, _dothis, pico_flash_store);  
-  DefCodeEntry( "FLASH_LIST",     NADAZ, NADAZ, _dothis, pico_flash_page_list);  
-  DefCodeEntry( "FLASH_ID",       NADAZ, NADAZ, _dothis, pico_flash_get_unique_id);  
-  DefCodeEntry( "FLASH_PATRN",    NADAZ, NADAZ, _dothis, pico_page_pattern);  
-  DefCodeEntry( "FLASH_WIPE",     NADAZ, NADAZ, _dothis, pico_WipeAllSectors);  
-  DefCodeEntry( "FLASH_GET_LINE", NADAZ, NADAZ, _dothis, pico_Get_Page_Line);  
+  DefHeader( "FLASH_ERASE",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_flash_sector_erase);  
+  DefHeader( "FLASH!",         NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_flash_store);  
+  DefHeader( "FLASH_LIST",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_flash_page_list);  
+  DefHeader( "FLASH_ID",       NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_flash_get_unique_id);  
+  DefHeader( "FLASH_PATRN",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_page_pattern);  
+  DefHeader( "FLASH_WIPE",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_WipeAllSectors);  
+  DefHeader( "FLASH_GET_LINE", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_Get_Page_Line);  
   //
-  DefCodeEntry( "!",      NADAZ, NADAZ, _dothis, _store);   
-  DefCodeEntry( "@",      NADAZ, NADAZ, _dothis, _fetch);  
-  DefCodeEntry( "+!",     NADAZ, NADAZ, _dothis, _addstore);  
-  DefCodeEntry( "-!",     NADAZ, NADAZ, _dothis, _substore);  
-  DefCodeEntry( "C!",     NADAZ, NADAZ, _dothis, _storebyte);   
-  DefCodeEntry( "C@",     NADAZ, NADAZ, _dothis, _fetchbyte);  
-  DefCodeEntry( "C@C!",   NADAZ, NADAZ, _dothis, _ccopy);  
-  DefCodeEntry( "CMOVE",  NADAZ, NADAZ, _dothis, _cmove);  
-  DefCodeEntry( "KEY",    NADAZ, NADAZ, _dothis, _key);   
-  DefCodeEntry( "EMIT",   NADAZ, NADAZ, _dothis, _emit);  
-  DefCodeEntry( "NUMBER", NADAZ, NADAZ, _dothis, _number);  
-  DefCodeEntry( "FIND",   NADAZ, NADAZ, _dothis, _find);    
+  DefHeader( "!",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _store);   
+  DefHeader( "@",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fetch);  
+  DefHeader( "+!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _addstore);  
+  DefHeader( "-!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _substore);  
+  DefHeader( "C!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _storebyte);   
+  DefHeader( "C@",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fetchbyte);  
+  DefHeader( "C@C!",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _ccopy);  
+  DefHeader( "CMOVE",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _cmove);  
+  DefHeader( "KEY",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _key);   
+  DefHeader( "EMIT",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _emit);  
+  DefHeader( "NUMBER", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _number);  
+  DefHeader( "FIND",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _find);    
   //    
 }
