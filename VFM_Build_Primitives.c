@@ -6,27 +6,29 @@
 #include "PicoPrimitivesADC.h"
 #include "PicoStoreSPI.h"
 //
-enum RunTypes { _TYPE0, _TYPE1 }; // these names will change
-//
-void DefCodeEntry(char* _name, bool _immediate, bool _hidden, int16_t _run, void (*_code)(void)){
-int len, padcount=1;
+void DefCodeEntry(char* _name, int32_t _immediate, int32_t _hidden, void (*_run)(void), void (*_code)(void)){
+int32_t len, padcount=1, tmp;
   DictCodeEntry *entry = (DictCodeEntry *) &(M.data32[M.HERE]);
   strcpy(entry->Name, _name);            // null terminated
   len = strlen(_name);
+  entry->Len = len;
   do{ 
     if((len + padcount) %4 == 0)break;
-    entry->Name[len + (padcount++)] =0xFF;
+    entry->Name[len + (padcount++)] = 0xFF;
   }while(true);
-  entry->Immediate = _immediate;
-  entry->Hidden    = _hidden;
-  entry->RunType   = _run;
+  entry->Immediate |= _immediate;
+  entry->Hidden    |= _hidden;
+  entry->cfa       = _run;
   entry->code      = _code;
   entry->done      = _fexit;
   entry->Link      = M.LATEST;
-  M.LATEST = M.HERE;
-  M.HERE += (16 + strlen(_name) + padcount) /4;  
+  M.LATEST         = M.HERE;
+  tmp              = sizeof(entry->Link) + sizeof(entry->Immediate);
+  tmp             += sizeof(entry->cfa)  + sizeof(entry->code) + sizeof(entry->done);
+  M.HERE          += ( tmp + strlen(_name) + padcount ) /4;  
 }
 //
+#ifdef PRINT_DICT_ENTRIES
 void Dump(int32_t start, int32_t count){
 char buf [16], ac;
 union{
@@ -45,110 +47,113 @@ union{
   }
 }
 //
-void PrintDictEntries(int32_t count){
+void PrintDictEntries(void){
 char buf[40];  
 int32_t len, i;
+bool alldone = false;
 DictCodeEntry *thecode;
  do{
   thecode = (DictCodeEntry *) &(M.data32[M.LATEST]);
+  if(thecode->Link == 0)alldone = true;
   len = strlen(thecode->Name);
                for(i=0;i<len;i++){    sprintf(buf,"%c",thecode->Name[i]);                   PrintBuf(buf); }
                for(   ;i<32 ;i++){    sprintf(buf," ");                                     PrintBuf(buf); }
                                       sprintf(buf," Link = %4X", thecode->Link);            PrintBuf(buf);
-  if(thecode->Immediate == false){    sprintf(buf," ~I");                                   PrintBuf(buf); }
-  if(thecode->Immediate == true) {    sprintf(buf,"  I");                                   PrintBuf(buf); }
-  if(thecode->Hidden    == false){    sprintf(buf," ~H");                                   PrintBuf(buf); }
-  if(thecode->Hidden    == true) {    sprintf(buf,"  H");                                   PrintBuf(buf); }  
-                                      sprintf(buf,"  Run = %d", thecode->RunType);          PrintBuf(buf);                
+                                      sprintf(buf," Len  = %3d", thecode->Len & LENMASK);   PrintBuf(buf);                                      
+  if((thecode->Immediate & IMMED) == 0){  sprintf(buf," ~I");                               PrintBuf(buf); }
+  if((thecode->Immediate & IMMED) != 0){  sprintf(buf,"  I");                               PrintBuf(buf); }
+  if((thecode->Hidden    & HIDEN) == 0){  sprintf(buf," ~H");                               PrintBuf(buf); }
+  if((thecode->Hidden    & HIDEN) != 0){  sprintf(buf,"  H");                               PrintBuf(buf); }  
+                                      sprintf(buf,"   Do = %8X", thecode->cfa);             PrintBuf(buf);                
                                       sprintf(buf," Code = %8X",thecode->code);             PrintBuf(buf);                                       
                                       sprintf(buf," Done = %8X",thecode->done);             PrintBuf(buf);                                          
                                                                                             PrintBuf("\n");
-  if((thecode->Link == 0) && (M.LATEST == 0))break;
   M.LATEST = thecode->Link;
- }while(--count >0);
+ }while(!alldone);
 }
+#endif
 //
 void BuildCodeEntries(int32_t where){
   M.HERE = where;
   //            Name      Immed  Hidden  type    code
-  DefCodeEntry( "DUP"   , false, false, _TYPE1, _dup); 
-  DefCodeEntry( "DROP"  , false, false, _TYPE1, _drop); 
-  DefCodeEntry( "SWAP"  , false, false, _TYPE1, _swap); 
-  DefCodeEntry( "OVER"  , false, false, _TYPE1, _over );
-  DefCodeEntry( "ROT"   , false, false, _TYPE1, _prot );
-  DefCodeEntry( "-ROT"  , false, false, _TYPE1, _nrot); 
-  DefCodeEntry( "2DROP" , false, false, _TYPE1, _2drop);   
-  DefCodeEntry( "2DUP"  , false, false, _TYPE1, _2dup );
-  DefCodeEntry( "2SWAP" , false, false, _TYPE1, _2swap);
-  DefCodeEntry( "?DUP"  , false, false, _TYPE1, _qdup);
-  DefCodeEntry( "1+"    , false, false, _TYPE1, _onep);
-  DefCodeEntry( "1-"    , false, false, _TYPE1, _onen);
-  DefCodeEntry( "4+"    , false, false, _TYPE1, _fourp);
-  DefCodeEntry( "4-"    , false, false, _TYPE1, _fourn);
-  DefCodeEntry( "+"     , false, false, _TYPE1, _add);
-  DefCodeEntry( "-"     , false, false, _TYPE1, _sub);
-  DefCodeEntry( "*"     , false, false, _TYPE1, _mul);
-  DefCodeEntry( "/MOD"  , false, false, _TYPE1, _smod);
-  DefCodeEntry( "="     , false, false, _TYPE1, _equal);
-  DefCodeEntry( "<>"    , false, false, _TYPE1, _nequal);
-  DefCodeEntry( "<"     , false, false, _TYPE1, _less);
-  DefCodeEntry( ">"     , false, false, _TYPE1, _greatr);
-  DefCodeEntry( "<="    , false, false, _TYPE1, _lesseq);
-  DefCodeEntry( ">="    , false, false, _TYPE1, _greatreq);
-  DefCodeEntry( "0="    , false, false, _TYPE1, _zeroeq);
-  DefCodeEntry( "0<>"   , false, false, _TYPE1, _zeroneq);
-  DefCodeEntry( "0<"    , false, false, _TYPE1, _zerolth);
-  DefCodeEntry( "0>"    , false, false, _TYPE1, _zerogth);
-  DefCodeEntry( "0<="   , false, false, _TYPE1, _zltheq);
-  DefCodeEntry( "0>="   , false, false, _TYPE1, _zgtheq);
-  DefCodeEntry( "AND"   , false, false, _TYPE1, _bitsand);
-  DefCodeEntry( "OR"    , false, false, _TYPE1, _bitsor);
-  DefCodeEntry( "XOR"   , false, false, _TYPE1, _bitsxor);
-  DefCodeEntry( "INVERT", false, false, _TYPE1, _bitsnot);
+  DefCodeEntry( "DUP"   , NADAZ, NADAZ, _dothis, _dup); 
+  DefCodeEntry( "DROP"  , NADAZ, NADAZ, _dothis, _drop); 
+  DefCodeEntry( "SWAP"  , NADAZ, NADAZ, _dothis, _swap); 
+  DefCodeEntry( "OVER"  , NADAZ, NADAZ, _dothis, _over );
+  DefCodeEntry( "ROT"   , NADAZ, NADAZ, _dothis, _prot );
+  DefCodeEntry( "-ROT"  , NADAZ, NADAZ, _dothis, _nrot); 
+  DefCodeEntry( "2DROP" , NADAZ, NADAZ, _dothis, _2drop);   
+  DefCodeEntry( "2DUP"  , NADAZ, NADAZ, _dothis, _2dup );
+  DefCodeEntry( "2SWAP" , NADAZ, NADAZ, _dothis, _2swap);
+  DefCodeEntry( "?DUP"  , NADAZ, NADAZ, _dothis, _qdup);
+  DefCodeEntry( "1+"    , NADAZ, NADAZ, _dothis, _onep);
+  DefCodeEntry( "1-"    , NADAZ, NADAZ, _dothis, _onen);
+  DefCodeEntry( "4+"    , NADAZ, NADAZ, _dothis, _fourp);
+  DefCodeEntry( "4-"    , NADAZ, NADAZ, _dothis, _fourn);
+  DefCodeEntry( "+"     , NADAZ, NADAZ, _dothis, _add);
+  DefCodeEntry( "-"     , NADAZ, NADAZ, _dothis, _sub);
+  DefCodeEntry( "*"     , NADAZ, NADAZ, _dothis, _mul);
+  DefCodeEntry( "/MOD"  , NADAZ, NADAZ, _dothis, _smod);
+  DefCodeEntry( "="     , NADAZ, NADAZ, _dothis, _equal);
+  DefCodeEntry( "<>"    , NADAZ, NADAZ, _dothis, _nequal);
+  DefCodeEntry( "<"     , NADAZ, NADAZ, _dothis, _less);
+  DefCodeEntry( ">"     , NADAZ, NADAZ, _dothis, _greatr);
+  DefCodeEntry( "<="    , NADAZ, NADAZ, _dothis, _lesseq);
+  DefCodeEntry( ">="    , NADAZ, NADAZ, _dothis, _greatreq);
+  DefCodeEntry( "0="    , NADAZ, NADAZ, _dothis, _zeroeq);
+  DefCodeEntry( "0<>"   , NADAZ, NADAZ, _dothis, _zeroneq);
+  DefCodeEntry( "0<"    , NADAZ, NADAZ, _dothis, _zerolth);
+  DefCodeEntry( "0>"    , NADAZ, NADAZ, _dothis, _zerogth);
+  DefCodeEntry( "0<="   , NADAZ, NADAZ, _dothis, _zltheq);
+  DefCodeEntry( "0>="   , NADAZ, NADAZ, _dothis, _zgtheq);
+  DefCodeEntry( "AND"   , NADAZ, NADAZ, _dothis, _bitsand);
+  DefCodeEntry( "OR"    , NADAZ, NADAZ, _dothis, _bitsor);
+  DefCodeEntry( "XOR"   , NADAZ, NADAZ, _dothis, _bitsxor);
+  DefCodeEntry( "INVERT", NADAZ, NADAZ, _dothis, _bitsnot);
   //
-  DefCodeEntry( "TEMPON",    false, false, _TYPE1, pico_temp_on);
-  DefCodeEntry( "TEMPOFF",   false, false, _TYPE1, pico_temp_off);
-  DefCodeEntry( "ADC_INIT",  false, false, _TYPE1, pico_adc_init);
-  DefCodeEntry( "ADC_GPIO",  false, false, _TYPE1, pico_adc_gpio_init);
-  DefCodeEntry( "ADC_INPUT", false, false, _TYPE1, pico_adc_select_input);
-  DefCodeEntry( "ADC_READ",  false, false, _TYPE1, pico_adc_read);  
+  DefCodeEntry( "TEMPON",    NADAZ, NADAZ, _dothis, pico_temp_on);
+  DefCodeEntry( "TEMPOFF",   NADAZ, NADAZ, _dothis, pico_temp_off);
+  DefCodeEntry( "ADC_INIT",  NADAZ, NADAZ, _dothis, pico_adc_init);
+  DefCodeEntry( "ADC_GPIO",  NADAZ, NADAZ, _dothis, pico_adc_gpio_init);
+  DefCodeEntry( "ADC_INPUT", NADAZ, NADAZ, _dothis, pico_adc_select_input);
+  DefCodeEntry( "ADC_READ",  NADAZ, NADAZ, _dothis, pico_adc_read);  
   //
-  DefCodeEntry( "IO_GET_DIR",  false, false, _TYPE1, pico_gpio_get_dir);
-  DefCodeEntry( "IO_GET_MA",   false, false, _TYPE1, pico_gpio_get_drive_strength);
-  DefCodeEntry( "IO_GET_DT",   false, false, _TYPE1, pico_gpio_get_slew_rate);
-  DefCodeEntry( "IO_NO_PULL",  false, false, _TYPE1, pico_gpio_disable_pulls);  
-  DefCodeEntry( "IO_PULLUP",   false, false, _TYPE1, pico_gpio_pull_up);
-  DefCodeEntry( "IO_PULLDN",   false, false, _TYPE1, pico_gpio_pull_down);
-  DefCodeEntry( "IO_PULLUP?",  false, false, _TYPE1, pico_gpio_is_pulled_up);
-  DefCodeEntry( "IO_PULLDN?",  false, false, _TYPE1, pico_gpio_is_pulled_down);  
-  DefCodeEntry( "IO_HYSTO?",   false, false, _TYPE1, pico_gpio_is_input_hysteresis_enabled);
-  DefCodeEntry( "IO_GET",      false, false, _TYPE1, pico_gpio_get);
-  DefCodeEntry( "IO_INIT",     false, false, _TYPE1, pico_gpio_init);
-  DefCodeEntry( "IO_SET_DIR",  false, false, _TYPE1, pico_gpio_set_dir);  
-  DefCodeEntry( "IO_PUT",      false, false, _TYPE1, pico_gpio_put);
-  DefCodeEntry( "IO_SET_MA",   false, false, _TYPE1, pico_gpio_set_drive_strength);
-  DefCodeEntry( "IO_SET_DT",   false, false, _TYPE1, pico_gpio_set_slew_rate);
-  DefCodeEntry( "IO_HYSTO_ON", false, false, _TYPE1, pico_gpio_set_input_hysteresis_enabled);  
+  DefCodeEntry( "IO_GET_DIR",  NADAZ, NADAZ, _dothis, pico_gpio_get_dir);
+  DefCodeEntry( "IO_GET_MA",   NADAZ, NADAZ, _dothis, pico_gpio_get_drive_strength);
+  DefCodeEntry( "IO_GET_DT",   NADAZ, NADAZ, _dothis, pico_gpio_get_slew_rate);
+  DefCodeEntry( "IO_NO_PULL",  NADAZ, NADAZ, _dothis, pico_gpio_disable_pulls);  
+  DefCodeEntry( "IO_PULLUP",   NADAZ, NADAZ, _dothis, pico_gpio_pull_up);
+  DefCodeEntry( "IO_PULLDN",   NADAZ, NADAZ, _dothis, pico_gpio_pull_down);
+  DefCodeEntry( "IO_PULLUP?",  NADAZ, NADAZ, _dothis, pico_gpio_is_pulled_up);
+  DefCodeEntry( "IO_PULLDN?",  NADAZ, NADAZ, _dothis, pico_gpio_is_pulled_down);  
+  DefCodeEntry( "IO_HYSTO?",   NADAZ, NADAZ, _dothis, pico_gpio_is_input_hysteresis_enabled);
+  DefCodeEntry( "IO_GET",      NADAZ, NADAZ, _dothis, pico_gpio_get);
+  DefCodeEntry( "IO_INIT",     NADAZ, NADAZ, _dothis, pico_gpio_init);
+  DefCodeEntry( "IO_SET_DIR",  NADAZ, NADAZ, _dothis, pico_gpio_set_dir);  
+  DefCodeEntry( "IO_PUT",      NADAZ, NADAZ, _dothis, pico_gpio_put);
+  DefCodeEntry( "IO_SET_MA",   NADAZ, NADAZ, _dothis, pico_gpio_set_drive_strength);
+  DefCodeEntry( "IO_SET_DT",   NADAZ, NADAZ, _dothis, pico_gpio_set_slew_rate);
+  DefCodeEntry( "IO_HYSTO_ON", NADAZ, NADAZ, _dothis, pico_gpio_set_input_hysteresis_enabled);  
   //
-  DefCodeEntry( "FLASH_ERASE",    false, false, _TYPE1, pico_flash_sector_erase);  
-  DefCodeEntry( "FLASH!",         false, false, _TYPE1, pico_flash_store);  
-  DefCodeEntry( "FLASH_LIST",     false, false, _TYPE1, pico_flash_page_list);  
-  DefCodeEntry( "FLASH_ID",       false, false, _TYPE1, pico_flash_get_unique_id);  
-  DefCodeEntry( "FLASH_PATRN",    false, false, _TYPE1, pico_page_pattern);  
-  DefCodeEntry( "FLASH_WIPE",     false, false, _TYPE1, pico_WipeAllSectors);  
-  DefCodeEntry( "FLASH_GET_LINE", false, false, _TYPE1, pico_Get_Page_Line);  
+  DefCodeEntry( "FLASH_ERASE",    NADAZ, NADAZ, _dothis, pico_flash_sector_erase);  
+  DefCodeEntry( "FLASH!",         NADAZ, NADAZ, _dothis, pico_flash_store);  
+  DefCodeEntry( "FLASH_LIST",     NADAZ, NADAZ, _dothis, pico_flash_page_list);  
+  DefCodeEntry( "FLASH_ID",       NADAZ, NADAZ, _dothis, pico_flash_get_unique_id);  
+  DefCodeEntry( "FLASH_PATRN",    NADAZ, NADAZ, _dothis, pico_page_pattern);  
+  DefCodeEntry( "FLASH_WIPE",     NADAZ, NADAZ, _dothis, pico_WipeAllSectors);  
+  DefCodeEntry( "FLASH_GET_LINE", NADAZ, NADAZ, _dothis, pico_Get_Page_Line);  
   //
-  DefCodeEntry( "!",      false, false, _TYPE1, _store);   
-  DefCodeEntry( "@",      false, false, _TYPE1, _fetch);  
-  DefCodeEntry( "+!",     false, false, _TYPE1, _addstore);  
-  DefCodeEntry( "-!",     false, false, _TYPE1, _substore);  
-  DefCodeEntry( "C!",     false, false, _TYPE1, _storebyte);   
-  DefCodeEntry( "C@",     false, false, _TYPE1, _fetchbyte);  
-  DefCodeEntry( "C@C!",   false, false, _TYPE1, _ccopy);  
-  DefCodeEntry( "CMOVE",  false, false, _TYPE1, _cmove);  
-  DefCodeEntry( "KEY",    false, false, _TYPE1, _key);   
-  DefCodeEntry( "EMIT",   false, false, _TYPE1, _emit);  
-  DefCodeEntry( "NUMBER", false, false, _TYPE1, _number);  
-  DefCodeEntry( "FIND",   false, false, _TYPE1, _find);    
+  DefCodeEntry( "!",      NADAZ, NADAZ, _dothis, _store);   
+  DefCodeEntry( "@",      NADAZ, NADAZ, _dothis, _fetch);  
+  DefCodeEntry( "+!",     NADAZ, NADAZ, _dothis, _addstore);  
+  DefCodeEntry( "-!",     NADAZ, NADAZ, _dothis, _substore);  
+  DefCodeEntry( "C!",     NADAZ, NADAZ, _dothis, _storebyte);   
+  DefCodeEntry( "C@",     NADAZ, NADAZ, _dothis, _fetchbyte);  
+  DefCodeEntry( "C@C!",   NADAZ, NADAZ, _dothis, _ccopy);  
+  DefCodeEntry( "CMOVE",  NADAZ, NADAZ, _dothis, _cmove);  
+  DefCodeEntry( "KEY",    NADAZ, NADAZ, _dothis, _key);   
+  DefCodeEntry( "EMIT",   NADAZ, NADAZ, _dothis, _emit);  
+  DefCodeEntry( "NUMBER", NADAZ, NADAZ, _dothis, _number);  
+  DefCodeEntry( "FIND",   NADAZ, NADAZ, _dothis, _find);    
   //    
 }

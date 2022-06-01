@@ -1,5 +1,6 @@
 void _fexit(void);
 void _fnext(void);
+void _dothis(void);
 //
 void _store(void);
 void _fetch(void);
@@ -12,10 +13,16 @@ void _cmove(void);
 void _key(void);
 void _emit(void);
 void _word(void);
+//
 void _number(void);
-//  void testnumber(void);
+#ifdef TEST_NUMBER
+  void testnumber(void);
+#endif
 void _find(void);
-//  void testfind(char*);
+#ifdef TEST_FIND
+  void testfind(char*);
+#endif
+//
 void _tcfa(void);
 void _tdfa(void);
 void _interpret(void);

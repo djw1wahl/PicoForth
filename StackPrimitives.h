@@ -5,14 +5,31 @@
 #define Push(x,y) (x[++y])
 #define Pop(x,y)  (x[y--])
 #define Top(x,y)  (x[y])
+#define Nth(x,y,z)(x[y+z])
 //
 #define PushP Push(M.pstack,M.pidx)
 // usage: PushP = value;
 #define PopP  Pop (M.pstack,M.pidx)
 // usage: value = PopP;
-#define TopP  Top (M.pstack,M.pidx)
+//
+#define H5thP Nth(M.pstack,M.pidx,4)
+#define H4thP Nth(M.pstack,M.pidx,3)
+#define H3rdP Nth(M.pstack,M.pidx,2)
+#define H2ndP Nth(M.pstack,M.pidx,1)
+//
+#define TopP  Nth (M.pstack,M.pidx,0)
 // usage: value = TopP; 
 //        TopP  = value;
+//
+#define L2ndP Nth(M.pstack,M.pidx,-1)
+#define L3rdP Nth(M.pstack,M.pidx,-2)
+#define L4thP Nth(M.pstack,M.pidx,-3)
+#define L5thP Nth(M.pstack,M.pidx,-4)
+//
+#define ResetStackP M.pidx = 0;
+//
+// the above: HxxxP & LxxP macros access the stack space without moving the stack pointer
+// ( L5thP, L4thP, L3rdP, L2ndP, TopP, H2ndP, H3rdP, H4thP, H5thP )
 //
 #define DecP M.pidx--;
 //
@@ -22,7 +39,7 @@
 //
 #define PushF Push(M.fstack,M.fidx)
 #define PopF  Pop (M.fstack,M.fidx)
-#define TopF  Top (M.fstack,M.fidx)
+#define TopF  Nth (M.fstack,M.fidx, 0)
 //
 void _dup(void);
 void _drop(void);
@@ -41,6 +58,7 @@ void _fourn(void);
 void _add(void);
 void _sub(void);
 void _mul(void);
+void _div(void);
 void _smod(void);
 void _equal(void);
 void _nequal(void);

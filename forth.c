@@ -8,10 +8,19 @@ MemoryImage M;
 //
 void forth(void){
   ClearMemory();
-  //TestStkOps();
-  BuildCodeEntries(0);
-  //Dump(0,0xC0);
-  //PrintDictEntries(128); 
-  //testnumber();
-  //testfind("0=");
+  BuildCodeEntries(DICTINARY_START);
+  //
+#ifdef RUN_STACK_TESTS
+  TestStkOps();
+#endif
+#ifdef PRINT_DICT_ENTRIES
+  //Dump(DICTINARY_START,512+128);
+  PrintDictEntries();
+#endif 
+#ifdef TEST_NUMBER
+  testnumber();
+#endif
+#ifdef TEST_FIND
+  testfind("DUP");
+#endif
 }

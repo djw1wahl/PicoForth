@@ -1,3 +1,4 @@
 void ClearMemory(void);
-void StackDump(int32_t *stkptr, int32_t, char*);
-// void TestStkOps(void);
+void  run_op (int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, void (*)(void));
+void  run_cmp(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, char*);
+void TestStkOps(void);

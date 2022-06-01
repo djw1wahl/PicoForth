@@ -5,6 +5,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 //
+//#define RUN_STACK_TESTS
+//#define TEST_NUMBER
+//#define TEST_FIND
+#define PRINT_DICT_ENTRIES
+//
 #define FLASH_SECTORS_AVAILABLE 256
 #define FLASH_SECTORS_OFFSET 1024 * 1024
 #define PAGES_PER_SECTOR 16
@@ -12,6 +17,7 @@
 #define MEMSIZE 4096 * 4
 #define TIBSIZE 64
 #define STACKSIZE 256
+#define DICTINARY_START 256
 #//
 #ifdef __cplusplus
 extern "C" {
@@ -33,10 +39,9 @@ typedef struct{
   int32_t  rstack[STACKSIZE]; // do not change STACKSIZE
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
-  int32_t  iA32,   iB32,  iC32;
-  int32_t  *pA32, *pB32, *pC32;  
-  int8_t   iA8,   iB8,  iC8,  iD8;
-  int8_t   *pA8, *pB8, *pC8, *pD8;
+  int32_t  iA32;
+  int32_t  *pA32;
+  int8_t   *pA8, *pB8;
   int32_t  STATE, LATEST, HERE, BASE, S0;
   int32_t  WP, PicoIDbuf;
   int8_t   ridx, pidx, fidx, pad;

@@ -3,8 +3,9 @@
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
 //
-void _fnext(void);
+void _fnext(void){}
 void _fexit(void){ M.WP = PopR; } // Word Pointer gets top of return stack--
+void _dothis(void){} // found at cfa in CODE words
 //
 void _store(void)        { M.pA32 = (int32_t*)PopP; *M.pA32  =  PopP;  }                            // ( x addr -- )       store x at addr
 void _fetch(void)        { M.pA32 = (int32_t*)PopP;  PushP   = *M.pA32;  }                          // ( a-addr -- x )     read value stored at addr. 
@@ -56,7 +57,7 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
                            accum *= sign;
                            PushP = accum; PushP = false; // pushing false indicates success
 }
-/*
+#ifdef TEST_NUMBER
   void testnumber(void){
     static char* astring = "0110111110100101";
     PushP = (int32_t) astring;
@@ -68,10 +69,10 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
     sprintf(buf,"NUMBER = %X %d\n",num, result);
     PrintBuf(buf);
   }
-*/
+#endif
+//
 void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which are null terminated
                   // ( string -- dict_adr_of_head | minus_one_if_not_found) )
-                  // not found == -1 so that the entry at 0 can be detected
                   //
                   char*   str  = (char*)PopP;     // get the string adr
                   int32_t latest = M.LATEST;
@@ -79,18 +80,18 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
                       DictCodeEntry *start = (DictCodeEntry*) &M.data32[latest] ;
                       if(strcmp(start->Name, str) == 0){ // found                        
                         if(start->Hidden){ // do not FIND Hidden entries
-                          PushP = -1; // not found
+                          PushP = 0; // not found
                           return;
                         }else{ // Found 
                           PushP = latest;
-                          return;
+                          return; // this is where a successful find exits
                         }
                       }
                       latest = start->Link;             
-                  }while(latest >= 0);     
-                  PushP = -1; // not found             
+                  }while(latest > 0);     
+                  PushP = 0; // not found             
 }
-/*
+#ifdef TEST_FIND
   void testfind(char* astring){
     DictCodeEntry* entry;
     PushP = (int32_t) astring;
@@ -98,16 +99,22 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
     int32_t idx = PopP;
     entry = (DictCodeEntry*) &M.data32[idx];
     char buf[40];
-    if(idx == -1){ // -1 outside the range of M.data32 array
-      sprintf(buf,"(-1) %s Not Found.\n", astring); PrintBuf(buf);
+    if(idx == 0){ 
+      sprintf(buf,"%s Not Found.\n", astring); PrintBuf(buf);
       return;
     }
     sprintf(buf,"Find Found = %s\n",entry->Name);
     PrintBuf(buf);
   }
-*/
-void _tcfa(void){ }
-void _tdfa(void){ }
+#endif
+void _tcfa(void){ 
+                    DictCodeEntry*    entry = (DictCodeEntry*) PopP;
+                    PushP = (int32_t) entry->cfa;
+}
+void _tdfa(void){ 
+                    DictCodeEntry*    entry = (DictCodeEntry*) PopP;
+                    PushP = (int32_t) entry->code;
+}
 void _interpret(void){ }
 void _create(void){ }
 void _comma(void){ }
