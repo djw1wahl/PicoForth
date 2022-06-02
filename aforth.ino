@@ -1,5 +1,4 @@
 #include "Common.h"
-#ifndef LINUX
 #include <Arduino.h>
 //
 char Title[128];
@@ -56,4 +55,3 @@ extern "C" {
 //
 void loop(void){ delay(100); } // all the magic is up in setup()
 //
-#endif

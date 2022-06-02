@@ -21,17 +21,10 @@ void _cmove(void)        { M.iA32 = PopP;                  // get the count from
                            M.pA8  = (int8_t*) PopP;  
                            M.pB8  = (int8_t*) PopP;        // ARE THE DST & SRC ADR BACKWARDS ???
                            memcpy(M.pB8, M.pA8, M.iA32); } // do the block copy                     // (  dest_adr src_adr n - )
-//    
-#ifndef LINUX                      
+//                      
 void _key(void)          { PushP = serial_getchar(); }     // one char at a time is put on stack, this blocks waiting for a char.
 void _emit(void)         { serial_putchar((char)PopP); }   // send one char to the UART
-#endif
 // 
-#ifdef LINUX
-void _key(void)          { PushP = getchar(); }     // one char at a time is put on stack, this blocks waiting for a char.
-void _emit(void)         { putchar((char)PopP); }   // send one char to the UART
-#endif
-//
 void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strings which are null terminated
                            // ( string -- intnum (error == false: means passed) )
                            int32_t accum = 0;

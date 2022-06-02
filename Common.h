@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 //
-#define LINUX
+//#define PICO
 //
 //#define RUN_STACK_TESTS
 //#define TEST_NUMBER
@@ -24,10 +24,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifndef LINUX
   void    serial_putchar(char);
   int32_t serial_getchar(void);
-#endif
   void    PrintBuf(char*);
   void    PrintNumber(int32_t);
 #ifdef __cplusplus
@@ -43,13 +41,11 @@ typedef struct{
   int32_t  rstack[STACKSIZE]; // do not change STACKSIZE
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
-  int32_t  iA32;
-  int32_t  *pA32;
+  int32_t  iA32, *pA32;
   int8_t   *pA8, *pB8;
   int32_t  STATE, LATEST, HERE, BASE, S0;
   int32_t  WP, PicoIDbuf;
   int8_t   ridx, pidx, fidx, pad;
-  char     tib_buf[TIBSIZE];
 }MemoryImage;
 //
 extern MemoryImage M;

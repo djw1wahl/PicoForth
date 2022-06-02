@@ -1,5 +1,5 @@
 #include "Common.h"
-#ifndef LINUX
+#ifdef PICO
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 #include "hardware/spi.h"

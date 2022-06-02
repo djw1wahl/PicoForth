@@ -2,7 +2,7 @@
 #include "StackPrimitives.h"
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
-#ifndef LINUX
+#ifdef PICO
 #include "picoprimitivesGPIO.h"
 #include "picoPrimitivesADC.h"
 #include "picoStoreSPI.h"
@@ -140,7 +140,7 @@ void BuildCodeEntries(int32_t where){
   DefHeader( "NUMBER", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _number);     InsertParameter((int32_t) _fexit);
   DefHeader( "FIND",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _find);       InsertParameter((int32_t) _fexit);
 //  
-#ifndef LINUX
+#ifdef PICO
   DefHeader( "TEMPON",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_temp_on);           InsertParameter((int32_t) _fexit);
   DefHeader( "TEMPOFF",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_temp_off);          InsertParameter((int32_t) _fexit);
   DefHeader( "ADC_INIT",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_adc_init);          InsertParameter((int32_t) _fexit);

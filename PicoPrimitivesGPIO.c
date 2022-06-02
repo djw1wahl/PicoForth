@@ -1,5 +1,5 @@
 #include "Common.h"
-#ifndef LINUX
+#ifdef PICO
 #include "hardware/gpio.h"
 #include "PICOprimitivesGPIO.h"
 #include "StackPrimitives.h"
