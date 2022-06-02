@@ -2,9 +2,11 @@
 #include "StackPrimitives.h"
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
+#ifndef LINUX
 #include "picoprimitivesGPIO.h"
 #include "picoPrimitivesADC.h"
 #include "picoStoreSPI.h"
+#endif
 //
 void DefHeader(char* _name, int32_t _immediate, int32_t _hidden){
 int32_t len, padcount=1;
@@ -125,6 +127,20 @@ void BuildCodeEntries(int32_t where){
   DefHeader( "XOR"   , NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _bitsxor);    InsertParameter((int32_t) _fexit);
   DefHeader( "INVERT", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _bitsnot);    InsertParameter((int32_t) _fexit);
   //
+  DefHeader( "!",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _store);      InsertParameter((int32_t) _fexit);
+  DefHeader( "@",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fetch);      InsertParameter((int32_t) _fexit);
+  DefHeader( "+!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _addstore);   InsertParameter((int32_t) _fexit);
+  DefHeader( "-!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _substore);   InsertParameter((int32_t) _fexit);
+  DefHeader( "C!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _storebyte);  InsertParameter((int32_t) _fexit);
+  DefHeader( "C@",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fetchbyte);  InsertParameter((int32_t) _fexit);
+  DefHeader( "C@C!",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _ccopy);      InsertParameter((int32_t) _fexit);
+  DefHeader( "CMOVE",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _cmove);      InsertParameter((int32_t) _fexit);
+  DefHeader( "KEY",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _key);        InsertParameter((int32_t) _fexit);
+  DefHeader( "EMIT",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _emit);       InsertParameter((int32_t) _fexit);
+  DefHeader( "NUMBER", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _number);     InsertParameter((int32_t) _fexit);
+  DefHeader( "FIND",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _find);       InsertParameter((int32_t) _fexit);
+//  
+#ifndef LINUX
   DefHeader( "TEMPON",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_temp_on);           InsertParameter((int32_t) _fexit);
   DefHeader( "TEMPOFF",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_temp_off);          InsertParameter((int32_t) _fexit);
   DefHeader( "ADC_INIT",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_adc_init);          InsertParameter((int32_t) _fexit);
@@ -157,17 +173,5 @@ void BuildCodeEntries(int32_t where){
   DefHeader( "FLASH_WIPE",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_WipeAllSectors);       InsertParameter((int32_t) _fexit);
   DefHeader( "FLASH_GET_LINE", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) pico_Get_Page_Line);        InsertParameter((int32_t) _fexit);
   //
-  DefHeader( "!",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _store);      InsertParameter((int32_t) _fexit);
-  DefHeader( "@",      NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fetch);      InsertParameter((int32_t) _fexit);
-  DefHeader( "+!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _addstore);   InsertParameter((int32_t) _fexit);
-  DefHeader( "-!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _substore);   InsertParameter((int32_t) _fexit);
-  DefHeader( "C!",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _storebyte);  InsertParameter((int32_t) _fexit);
-  DefHeader( "C@",     NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _fetchbyte);  InsertParameter((int32_t) _fexit);
-  DefHeader( "C@C!",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _ccopy);      InsertParameter((int32_t) _fexit);
-  DefHeader( "CMOVE",  NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _cmove);      InsertParameter((int32_t) _fexit);
-  DefHeader( "KEY",    NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _key);        InsertParameter((int32_t) _fexit);
-  DefHeader( "EMIT",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _emit);       InsertParameter((int32_t) _fexit);
-  DefHeader( "NUMBER", NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _number);     InsertParameter((int32_t) _fexit);
-  DefHeader( "FIND",   NADAZ, NADAZ); InsertParameter((int32_t) _dothis); InsertParameter((int32_t) _find);       InsertParameter((int32_t) _fexit);
-  //    
+#endif  
 }

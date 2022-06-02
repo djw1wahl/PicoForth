@@ -1,4 +1,5 @@
 #include "Common.h"
+#ifndef LINUX
 #include "hardware/gpio.h"
 #include "PICOprimitivesGPIO.h"
 #include "StackPrimitives.h"
@@ -23,3 +24,4 @@ void pico_gpio_disable_pulls(void)               { GET_PARAM  gpio_disable_pulls
 void pico_gpio_pull_up(void)                     { GET_PARAM  gpio_pull_up(m); }
 void pico_gpio_pull_down(void)                   { GET_PARAM  gpio_pull_down(m); }
 void pico_gpio_set_input_hysteresis_enabled(void){ GET_PARAMS gpio_set_input_hysteresis_enabled(n, m); }
+#endif

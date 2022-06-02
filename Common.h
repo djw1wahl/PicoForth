@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 //
+#define LINUX
+//
 //#define RUN_STACK_TESTS
 //#define TEST_NUMBER
 //#define TEST_FIND
@@ -22,8 +24,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#ifndef LINUX
   void    serial_putchar(char);
   int32_t serial_getchar(void);
+#endif
   void    PrintBuf(char*);
   void    PrintNumber(int32_t);
 #ifdef __cplusplus

@@ -1,4 +1,5 @@
 #include "Common.h"
+#ifndef LINUX
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 #include "hardware/spi.h"
@@ -164,3 +165,5 @@ void pico_Put_Page_Line(void){ // source M.line_buf[64]
   int32_t PageNumber = PopP;  
   int32_t SectorNumber = PopP;   
 }
+//
+#endif
