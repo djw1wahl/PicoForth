@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 //
-//#define PICO
+#define PICO
 //
-//#define RUN_STACK_TESTS
+#define RUN_STACK_TESTS
 //#define TEST_NUMBER
 //#define TEST_FIND
 #define PRINT_DICT_ENTRIES
@@ -41,11 +41,9 @@ typedef struct{
   int32_t  rstack[STACKSIZE]; // do not change STACKSIZE
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
-  int32_t  iA32, *pA32;
-  int8_t   *pA8, *pB8;
   int32_t  STATE, LATEST, HERE, BASE, S0;
-  int32_t  WP, PicoIDbuf;
-  int8_t   ridx, pidx, fidx, pad;
+  int32_t  IP, WP, PicoIDbuf;
+  int8_t   ridx, pidx, fidx;
 }MemoryImage;
 //
 extern MemoryImage M;

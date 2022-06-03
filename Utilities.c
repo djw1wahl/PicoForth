@@ -8,7 +8,6 @@ int i;
   for(i=0;i<STACKSIZE;i++){ M.rstack[i] = 0; }
   for(i=0;i<STACKSIZE;i++){ M.pstack[i] = 0; }
   for(i=0;i<STACKSIZE;i++){ M.fstack[i] = 0.0; }  
-  M.iA32 =0;
   M.STATE=0;
   M.LATEST=0;
   M.HERE=0;
@@ -17,8 +16,6 @@ int i;
   M.ridx   =0;
   M.pidx   =0;
   M.fidx   =0;
-  M.pad    =0;
-  for(i=0;i<TIBSIZE;i++)  { M.tib_buf[i] = (char) 0; }  
 }
 //
 //

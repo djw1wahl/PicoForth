@@ -1,6 +1,6 @@
 void _fexit(void);
 void _fnext(void);
-void _dothis(void);
+void _docolon(void);
 //
 void _store(void);
 void _fetch(void);

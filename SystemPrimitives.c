@@ -3,24 +3,27 @@
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
 //
-void _fnext(void){}
-void _fexit(void){ M.WP = PopR; } // Word Pointer gets top of return stack--
-void _dothis(void){} // found at pfa in CODE words
+int32_t  iA32, *pA32;
+int8_t   *pA8, *pB8;
 //
-void _store(void)        { M.pA32 = (int32_t*)PopP; *M.pA32  =  PopP;  }                            // ( x addr -- )       store x at addr
-void _fetch(void)        { M.pA32 = (int32_t*)PopP;  PushP   = *M.pA32;  }                          // ( a-addr -- x )     read value stored at addr. 
-void _addstore(void)     { M.pA32 = (int32_t*)PopP;  M.iA32  = *M.pA32 + PopP; *M.pA32 = M.iA32; }  // ( n | u a-addr -- ) add n to value at addr.
-void _substore(void)     { M.pA32 = (int32_t*)PopP;  M.iA32  = *M.pA32 - PopP; *M.pA32 = M.iA32; }  // ( n | u a-addr -- ) sub n to value at addr.
-void _storebyte(void)    { M.pA8  = (int8_t*) PopP; *M.pA8   =  PopP;  }                            // ( c addr -- )       store c at addr
-void _fetchbyte(void)    { M.pA8  = (int8_t*) PopP;  PushP   = *M.pA8; }                            // ( a-addr -- c )     read  cvalue stored at addr. 
-void _ccopy(void)        { M.pA8  = (int8_t*) PopP;  M.pB8   = (int8_t*) PopP; // get both c addr
-                          *M.pB8  = *M.pA8;                                    // copy
-                          PushP   = (int32_t)++M.pB8;      // incr addrs and put back addr on stack
-                          PushP   = (int32_t)++M.pA8; }    // ( dest_adr src_adr - dest_adr+1 src_adr+1 ) copy c ( dest <- src )
-void _cmove(void)        { M.iA32 = PopP;                  // get the count from the stack
-                           M.pA8  = (int8_t*) PopP;  
-                           M.pB8  = (int8_t*) PopP;        // ARE THE DST & SRC ADR BACKWARDS ???
-                           memcpy(M.pB8, M.pA8, M.iA32); } // do the block copy                     // (  dest_adr src_adr n - )
+void _fnext(void)  {}
+void _fexit(void)  { M.WP = PopR; }  // Word Pointer gets top of return stack--
+void _docolon(void){ PushR = M.IP; M.WP++; M.IP = M.WP; }  // found at pfa in CODE words
+//
+void _store(void)        { pA32 = (int32_t*)PopP; *pA32  =  PopP;  }                            // ( x addr -- )       store x at addr
+void _fetch(void)        { pA32 = (int32_t*)PopP;  PushP   = *pA32;  }                          // ( a-addr -- x )     read value stored at addr. 
+void _addstore(void)     { pA32 = (int32_t*)PopP;  iA32  = *pA32 + PopP; *pA32 = iA32; }  // ( n | u a-addr -- ) add n to value at addr.
+void _substore(void)     { pA32 = (int32_t*)PopP;  iA32  = *pA32 - PopP; *pA32 = iA32; }  // ( n | u a-addr -- ) sub n to value at addr.
+void _storebyte(void)    { pA8  = (int8_t*) PopP; *pA8   =  PopP;  }                            // ( c addr -- )       store c at addr
+void _fetchbyte(void)    { pA8  = (int8_t*) PopP;  PushP   = *pA8; }                            // ( a-addr -- c )     read  cvalue stored at addr. 
+void _ccopy(void)        { pA8  = (int8_t*) PopP;  pB8   = (int8_t*) PopP; // get both c addr
+                          *pB8  = *pA8;                                    // copy
+                          PushP   = (int32_t)++pB8;      // incr addrs and put back addr on stack
+                          PushP   = (int32_t)++pA8; }    // ( dest_adr src_adr - dest_adr+1 src_adr+1 ) copy c ( dest <- src )
+void _cmove(void)        { iA32 = PopP;                  // get the count from the stack
+                           pA8  = (int8_t*) PopP;  
+                           pB8  = (int8_t*) PopP;        // ARE THE DST & SRC ADR BACKWARDS ???
+                           memcpy(pB8, pA8, iA32); } // do the block copy                     // (  dest_adr src_adr n - )
 //                      
 void _key(void)          { PushP = serial_getchar(); }     // one char at a time is put on stack, this blocks waiting for a char.
 void _emit(void)         { serial_putchar((char)PopP); }   // send one char to the UART
