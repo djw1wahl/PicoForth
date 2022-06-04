@@ -33,16 +33,25 @@ int32_t len, padcount=1;
   entry->pfa        = M.HERE;
 }
 //
-void InsertParameter(int32_t parameter){ // a LOT Like <comma>
-   DictEntry *entry = (DictEntry *) &(M.data32[M.LATEST]);
-   entry->NumParam++;
-   M.data32[M.HERE++] = parameter;
+void InsertCode(int32_t parameter){ // a LOT Like <comma>
+  DictEntry *entry = (DictEntry *) &(M.data32[M.LATEST]);
+  entry->NumParam++;
+  M.data32[M.HERE++] = parameter;
+}
+//
+void InsertWord(char* TheName){ 
+  PushP = (int32_t)TheName; // put a word name on the stack
+  _find();                                
+  if(TopP == 0){ sprintf(buf,"InsertWord can't find that name: %s\n", TheName); PrintBuf(buf); return; } 
+  DictEntry *entry = (DictEntry *) &(M.data32[M.LATEST]);
+  entry->NumParam++;                              
+  M.data32[M.HERE++] = PopP;
 }
 //
 #ifdef PRINT_DICT_ENTRIES
 void Dump(int32_t start){
 int32_t count=0;
-char buf[16], ac;
+char ac;
 union{
   int32_t val;
   char cval[4];
@@ -62,7 +71,6 @@ union{
 }
 //
 void PrintDictEntries(void){
-char buf[40];  
 int32_t len, i, j;
 bool alldone = false;
 DictEntry *thecode;
@@ -92,86 +100,90 @@ DictEntry *thecode;
 void BuildCodeEntries(int32_t where){
   M.HERE = where;
   //            Name      Immed  Hidden  type    code
-  DefHeader( "DUP"   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _dup);        InsertParameter((int32_t) _fexit);
-  DefHeader( "DROP"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _drop);       InsertParameter((int32_t) _fexit);
-  DefHeader( "SWAP"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _swap);       InsertParameter((int32_t) _fexit);
-  DefHeader( "OVER"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _over );      InsertParameter((int32_t) _fexit);
-  DefHeader( "ROT"   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _prot );      InsertParameter((int32_t) _fexit);
-  DefHeader( "-ROT"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _nrot);       InsertParameter((int32_t) _fexit);
-  DefHeader( "2DROP" , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _2drop);      InsertParameter((int32_t) _fexit);
-  DefHeader( "2DUP"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _2dup );      InsertParameter((int32_t) _fexit);
-  DefHeader( "2SWAP" , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _2swap);      InsertParameter((int32_t) _fexit);
-  DefHeader( "?DUP"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _qdup);       InsertParameter((int32_t) _fexit);
-  DefHeader( "1+"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _onep);       InsertParameter((int32_t) _fexit);
-  DefHeader( "1-"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _onen);       InsertParameter((int32_t) _fexit);
-  DefHeader( "4+"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _fourp);      InsertParameter((int32_t) _fexit);
-  DefHeader( "4-"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _fourn);      InsertParameter((int32_t) _fexit);
-  DefHeader( "+"     , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _add);        InsertParameter((int32_t) _fexit);
-  DefHeader( "-"     , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _sub);        InsertParameter((int32_t) _fexit);
-  DefHeader( "*"     , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _mul);        InsertParameter((int32_t) _fexit);
-  DefHeader( "/MOD"  , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _smod);       InsertParameter((int32_t) _fexit);
-  DefHeader( "="     , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _equal);      InsertParameter((int32_t) _fexit);
-  DefHeader( "<>"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _nequal);     InsertParameter((int32_t) _fexit);
-  DefHeader( "<"     , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _less);       InsertParameter((int32_t) _fexit);
-  DefHeader( ">"     , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _greatr);     InsertParameter((int32_t) _fexit);
-  DefHeader( "<="    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _lesseq);     InsertParameter((int32_t) _fexit);
-  DefHeader( ">="    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _greatreq);   InsertParameter((int32_t) _fexit);
-  DefHeader( "0="    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _zeroeq);     InsertParameter((int32_t) _fexit);
-  DefHeader( "0<>"   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _zeroneq);    InsertParameter((int32_t) _fexit);
-  DefHeader( "0<"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _zerolth);    InsertParameter((int32_t) _fexit);
-  DefHeader( "0>"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _zerogth);    InsertParameter((int32_t) _fexit);
-  DefHeader( "0<="   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _zltheq);     InsertParameter((int32_t) _fexit);
-  DefHeader( "0>="   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _zgtheq);     InsertParameter((int32_t) _fexit);
-  DefHeader( "AND"   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _bitsand);    InsertParameter((int32_t) _fexit);
-  DefHeader( "OR"    , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _bitsor);     InsertParameter((int32_t) _fexit);
-  DefHeader( "XOR"   , NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _bitsxor);    InsertParameter((int32_t) _fexit);
-  DefHeader( "INVERT", NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _bitsnot);    InsertParameter((int32_t) _fexit);
+  DefHeader( "DUP"   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _dup);        InsertCode((int32_t) _fexit);
+  DefHeader( "DROP"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _drop);       InsertCode((int32_t) _fexit);
+  DefHeader( "SWAP"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _swap);       InsertCode((int32_t) _fexit);
+  DefHeader( "OVER"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _over );      InsertCode((int32_t) _fexit);
+  DefHeader( "ROT"   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _prot );      InsertCode((int32_t) _fexit);
+  DefHeader( "-ROT"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _nrot);       InsertCode((int32_t) _fexit);
+  DefHeader( "2DROP" , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _2drop);      InsertCode((int32_t) _fexit);
+  DefHeader( "2DUP"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _2dup );      InsertCode((int32_t) _fexit);
+  DefHeader( "2SWAP" , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _2swap);      InsertCode((int32_t) _fexit);
+  DefHeader( "?DUP"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _qdup);       InsertCode((int32_t) _fexit);
+  DefHeader( "1+"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _onep);       InsertCode((int32_t) _fexit);
+  DefHeader( "1-"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _onen);       InsertCode((int32_t) _fexit);
+  DefHeader( "4+"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _fourp);      InsertCode((int32_t) _fexit);
+  DefHeader( "4-"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _fourn);      InsertCode((int32_t) _fexit);
+  DefHeader( "+"     , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _add);        InsertCode((int32_t) _fexit);
+  DefHeader( "-"     , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _sub);        InsertCode((int32_t) _fexit);
+  DefHeader( "*"     , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _mul);        InsertCode((int32_t) _fexit);
+  DefHeader( "/MOD"  , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _smod);       InsertCode((int32_t) _fexit);
+  DefHeader( "="     , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _equal);      InsertCode((int32_t) _fexit);
+  DefHeader( "<>"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _nequal);     InsertCode((int32_t) _fexit);
+  DefHeader( "<"     , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _less);       InsertCode((int32_t) _fexit);
+  DefHeader( ">"     , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _greatr);     InsertCode((int32_t) _fexit);
+  DefHeader( "<="    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _lesseq);     InsertCode((int32_t) _fexit);
+  DefHeader( ">="    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _greatreq);   InsertCode((int32_t) _fexit);
+  DefHeader( "0="    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _zeroeq);     InsertCode((int32_t) _fexit);
+  DefHeader( "0<>"   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _zeroneq);    InsertCode((int32_t) _fexit);
+  DefHeader( "0<"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _zerolth);    InsertCode((int32_t) _fexit);
+  DefHeader( "0>"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _zerogth);    InsertCode((int32_t) _fexit);
+  DefHeader( "0<="   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _zltheq);     InsertCode((int32_t) _fexit);
+  DefHeader( "0>="   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _zgtheq);     InsertCode((int32_t) _fexit);
+  DefHeader( "AND"   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _bitsand);    InsertCode((int32_t) _fexit);
+  DefHeader( "OR"    , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _bitsor);     InsertCode((int32_t) _fexit);
+  DefHeader( "XOR"   , NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _bitsxor);    InsertCode((int32_t) _fexit);
+  DefHeader( "INVERT", NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _bitsnot);    InsertCode((int32_t) _fexit);
   //
-  DefHeader( "!",      NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _store);      InsertParameter((int32_t) _fexit);
-  DefHeader( "@",      NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _fetch);      InsertParameter((int32_t) _fexit);
-  DefHeader( "+!",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _addstore);   InsertParameter((int32_t) _fexit);
-  DefHeader( "-!",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _substore);   InsertParameter((int32_t) _fexit);
-  DefHeader( "C!",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _storebyte);  InsertParameter((int32_t) _fexit);
-  DefHeader( "C@",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _fetchbyte);  InsertParameter((int32_t) _fexit);
-  DefHeader( "C@C!",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _ccopy);      InsertParameter((int32_t) _fexit);
-  DefHeader( "CMOVE",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _cmove);      InsertParameter((int32_t) _fexit);
-  DefHeader( "KEY",    NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _key);        InsertParameter((int32_t) _fexit);
-  DefHeader( "EMIT",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _emit);       InsertParameter((int32_t) _fexit);
-  DefHeader( "NUMBER", NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _number);     InsertParameter((int32_t) _fexit);
-  DefHeader( "FIND",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) _find);       InsertParameter((int32_t) _fexit);
+  DefHeader( "!",      NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _store);      InsertCode((int32_t) _fexit);
+  DefHeader( "@",      NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _fetch);      InsertCode((int32_t) _fexit);
+  DefHeader( "+!",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _addstore);   InsertCode((int32_t) _fexit);
+  DefHeader( "-!",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _substore);   InsertCode((int32_t) _fexit);
+  DefHeader( "C!",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _storebyte);  InsertCode((int32_t) _fexit);
+  DefHeader( "C@",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _fetchbyte);  InsertCode((int32_t) _fexit);
+  DefHeader( "C@C!",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _ccopy);      InsertCode((int32_t) _fexit);
+  DefHeader( "CMOVE",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _cmove);      InsertCode((int32_t) _fexit);
+  DefHeader( "KEY",    NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _key);        InsertCode((int32_t) _fexit);
+  DefHeader( "EMIT",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _emit);       InsertCode((int32_t) _fexit);
+  DefHeader( "NUMBER", NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _number);     InsertCode((int32_t) _fexit);
+  DefHeader( "FIND",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) _find);       InsertCode((int32_t) _fexit);
 //  
 #ifdef PICO
-  DefHeader( "TEMPON",    NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_temp_on);           InsertParameter((int32_t) _fexit);
-  DefHeader( "TEMPOFF",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_temp_off);          InsertParameter((int32_t) _fexit);
-  DefHeader( "ADC_INIT",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_adc_init);          InsertParameter((int32_t) _fexit);
-  DefHeader( "ADC_GPIO",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_adc_gpio_init);     InsertParameter((int32_t) _fexit);
-  DefHeader( "ADC_INPUT", NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_adc_select_input);  InsertParameter((int32_t) _fexit);
-  DefHeader( "ADC_READ",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_adc_read);          InsertParameter((int32_t) _fexit);
+  DefHeader( "TEMPON",    NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_temp_on);           InsertCode((int32_t) _fexit);
+  DefHeader( "TEMPOFF",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_temp_off);          InsertCode((int32_t) _fexit);
+  DefHeader( "ADC_INIT",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_adc_init);          InsertCode((int32_t) _fexit);
+  DefHeader( "ADC_GPIO",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_adc_gpio_init);     InsertCode((int32_t) _fexit);
+  DefHeader( "ADC_INPUT", NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_adc_select_input);  InsertCode((int32_t) _fexit);
+  DefHeader( "ADC_READ",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_adc_read);          InsertCode((int32_t) _fexit);
   //
-  DefHeader( "IO_GET_DIR",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_get_dir);                      InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_GET_MA",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_get_drive_strength);           InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_GET_DT",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_get_slew_rate);                InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_NO_PULL",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_disable_pulls);                InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_PULLUP",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_pull_up);                      InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_PULLDN",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_pull_down);                    InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_PULLUP?",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_is_pulled_up);                 InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_PULLDN?",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_is_pulled_down);               InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_HYSTO?",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_is_input_hysteresis_enabled);  InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_GET",      NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_get);                          InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_INIT",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_init);                         InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_SET_DIR",  NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_set_dir);                      InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_PUT",      NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_put);                          InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_SET_MA",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_set_drive_strength);           InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_SET_DT",   NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_set_slew_rate);                InsertParameter((int32_t) _fexit);
-  DefHeader( "IO_HYSTO_ON", NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_gpio_set_input_hysteresis_enabled); InsertParameter((int32_t) _fexit);
+  DefHeader( "IO_GET_DIR",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_get_dir);                      InsertCode((int32_t) _fexit);
+  DefHeader( "IO_GET_MA",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_get_drive_strength);           InsertCode((int32_t) _fexit);
+  DefHeader( "IO_GET_DT",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_get_slew_rate);                InsertCode((int32_t) _fexit);
+  DefHeader( "IO_NO_PULL",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_disable_pulls);                InsertCode((int32_t) _fexit);
+  DefHeader( "IO_PULLUP",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_pull_up);                      InsertCode((int32_t) _fexit);
+  DefHeader( "IO_PULLDN",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_pull_down);                    InsertCode((int32_t) _fexit);
+  DefHeader( "IO_PULLUP?",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_is_pulled_up);                 InsertCode((int32_t) _fexit);
+  DefHeader( "IO_PULLDN?",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_is_pulled_down);               InsertCode((int32_t) _fexit);
+  DefHeader( "IO_HYSTO?",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_is_input_hysteresis_enabled);  InsertCode((int32_t) _fexit);
+  DefHeader( "IO_GET",      NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_get);                          InsertCode((int32_t) _fexit);
+  DefHeader( "IO_INIT",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_init);                         InsertCode((int32_t) _fexit);
+  DefHeader( "IO_SET_DIR",  NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_set_dir);                      InsertCode((int32_t) _fexit);
+  DefHeader( "IO_PUT",      NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_put);                          InsertCode((int32_t) _fexit);
+  DefHeader( "IO_SET_MA",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_set_drive_strength);           InsertCode((int32_t) _fexit);
+  DefHeader( "IO_SET_DT",   NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_set_slew_rate);                InsertCode((int32_t) _fexit);
+  DefHeader( "IO_HYSTO_ON", NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_gpio_set_input_hysteresis_enabled); InsertCode((int32_t) _fexit);
   //
-  DefHeader( "FLASH_ERASE",    NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_flash_sector_erase);   InsertParameter((int32_t) _fexit);
-  DefHeader( "FLASH!",         NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_flash_store);          InsertParameter((int32_t) _fexit);
-  DefHeader( "FLASH_LIST",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_flash_page_list);      InsertParameter((int32_t) _fexit);
-  DefHeader( "FLASH_ID",       NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_flash_get_unique_id);  InsertParameter((int32_t) _fexit);
-  DefHeader( "FLASH_PATRN",    NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_page_pattern);         InsertParameter((int32_t) _fexit);
-  DefHeader( "FLASH_WIPE",     NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_WipeAllSectors);       InsertParameter((int32_t) _fexit);
-  DefHeader( "FLASH_GET_LINE", NADAZ, NADAZ); InsertParameter((int32_t) _docolon); InsertParameter((int32_t) pico_Get_Page_Line);        InsertParameter((int32_t) _fexit);
+  DefHeader( "FLASH_ERASE",    NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_flash_sector_erase);   InsertCode((int32_t) _fexit);
+  DefHeader( "FLASH!",         NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_flash_store);          InsertCode((int32_t) _fexit);
+  DefHeader( "FLASH_LIST",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_flash_page_list);      InsertCode((int32_t) _fexit);
+  DefHeader( "FLASH_ID",       NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_flash_get_unique_id);  InsertCode((int32_t) _fexit);
+  DefHeader( "FLASH_PATRN",    NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_page_pattern);         InsertCode((int32_t) _fexit);
+  DefHeader( "FLASH_WIPE",     NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_WipeAllSectors);       InsertCode((int32_t) _fexit);
+  DefHeader( "FLASH_GET_LINE", NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t) pico_Get_Page_Line);        InsertCode((int32_t) _fexit);
   //
 #endif  
+}
+//
+void BuildWordEntries(int32_t where){
+  DefHeader( "DOG", NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("SWAP"); InsertWord("NEXT");
 }

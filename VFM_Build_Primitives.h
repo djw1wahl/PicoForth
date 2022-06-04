@@ -14,7 +14,9 @@ typedef struct{
 }DictEntry;
 //
 void DefHeader(char*, int32_t, int32_t);
-void InsertParameter(int32_t);
+void InsertCode(int32_t);
+void InsertWord(char*);
 void BuildCodeEntries(int32_t);
+void BuildWordEntries(int32_t);
 void Dump(int32_t);
 void PrintDictEntries(void);

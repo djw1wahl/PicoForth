@@ -6,9 +6,42 @@
 int32_t  iA32, *pA32;
 int8_t   *pA8, *pB8;
 //
-void _fnext(void)  {}
-void _fexit(void)  { M.WP = PopR; }  // Word Pointer gets top of return stack--
-void _docolon(void){ PushR = M.IP; M.WP++; M.IP = M.WP; }  // found at pfa in CODE words
+void _execute(void){ }
+//
+void _fnext(void)  { Notify("This is _fnext\n.") }
+//
+void _fexit(void)  { Notify("This is _fexit.\n") }  
+//
+void _docolon(void){ Notify("This is _docolon.\n") }
+//  
+void _docode (void){ Notify("This is _docode.\n") }  
+//
+char wordname[32];
+void TRY_Code_Word(char *str){                                // lookup and execute a code word by its string name 
+DictEntry *entry;
+//      
+  strcpy(wordname, str); PushP = (int32_t)wordname; // put a word name on the stack
+  _find();                                          // get the Head address of the word to execute, or 0 if  not found
+  if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
+  M.WP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
+  entry = (DictEntry*) &M.data32[M.WP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
+  for(int32_t i=0;i<entry->NumParam;i++){
+    ((void(*)(void)) M.data32[(entry->pfa)+i])();   // call the function(s), they will start with docolon() or docode() or literal() or variable(),...
+  }
+}
+//
+void TRY_Colon_Word(char *str){                                // lookup and execute a colon word by its string name 
+DictEntry *entry;
+//      
+  strcpy(wordname, str); PushP = (int32_t)wordname; // put a word name on the stack
+  _find();                                          // get the Head address of the word to execute, or 0 if  not found
+  if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
+  M.WP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
+  entry = (DictEntry*) &M.data32[M.WP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
+  for(int32_t i=0;i<entry->NumParam;i++){
+    ((void(*)(void)) M.data32[(entry->pfa)+i])();   // call the function(s), they will start with docolon() or docode() or literal() or variable(),...
+  }
+}
 //
 void _store(void)        { pA32 = (int32_t*)PopP; *pA32  =  PopP;  }                            // ( x addr -- )       store x at addr
 void _fetch(void)        { pA32 = (int32_t*)PopP;  PushP   = *pA32;  }                          // ( a-addr -- x )     read value stored at addr. 
@@ -68,14 +101,13 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
     _number();
     bool result = PopP;
     int32_t num = PopP;
-    char buf[32];
     sprintf(buf,"NUMBER = %X %d\n",num, result);
     PrintBuf(buf);
   }
 #endif
 //
 void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which are null terminated
-                  // ( string -- dict_adr_of_head | minus_one_if_not_found) )
+                  // ( string -- dict_adr_of_head | zero_if_not_found) )
                   //
                   char*   str  = (char*)PopP;     // get the string adr
                   int32_t latest = M.LATEST;
@@ -101,7 +133,6 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
     _find();
     int32_t idx = PopP;
     entry = (DictEntry*) &M.data32[idx];
-    char buf[40];
     if(idx == 0){ 
       sprintf(buf,"%s Not Found.\n", astring); PrintBuf(buf);
       return;
@@ -137,4 +168,4 @@ void _litstring(void){ }
 void _tell(void){ }
 void _quit(void){ }
 void _char(void){ }
-void _execute(void){ }
+

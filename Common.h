@@ -6,11 +6,12 @@
 #include <stdbool.h>
 //
 #define PICO
+#define Notify(S) sprintf(buf,"%s",S); PrintBuf(buf);
 //
-#define RUN_STACK_TESTS
+//#define RUN_STACK_TESTS
 //#define TEST_NUMBER
 //#define TEST_FIND
-#define PRINT_DICT_ENTRIES
+//#define PRINT_DICT_ENTRIES
 //
 #define FLASH_SECTORS_AVAILABLE 256
 #define FLASH_SECTORS_OFFSET 1024 * 1024
@@ -47,3 +48,4 @@ typedef struct{
 }MemoryImage;
 //
 extern MemoryImage M;
+extern char buf[256];

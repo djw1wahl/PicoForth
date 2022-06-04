@@ -27,7 +27,6 @@ void pico_flash_sector_erase(void){ //(Sector - ) erase one sector = 4096 bytes
 #ifdef VERBOSE 
 void show_buffer(const uint8_t* data, int32_t number){ // for testing
   int32_t i;
-  char buf[8];
   for(i=0;i<number;i++){
     sprintf(buf,"%02X",data[i]);
     PrintBuf(buf);
@@ -44,7 +43,6 @@ void pico_flash_store(void){ // (dataPtr Sector Page - )
   int32_t PageNumber = PopP;
   int32_t SectorNumber = PopP;
   int32_t data = PopP;
-  char buf[80];
   //  
 #ifdef VERBOSE  
   sprintf(buf,"\nStore at: SN=%d PN=%d\n",SectorNumber, PageNumber);
@@ -74,7 +72,6 @@ void pico_flash_store(void){ // (dataPtr Sector Page - )
 void pico_flash_page_list(void){ // (sector Page - )
   int32_t PageNumber = PopP;  
   int32_t SectorNumber = PopP; 
-  char buf[80]; 
   //
 #ifdef VERBOSE  
   sprintf(buf,"\n SectorNumber=%d PageNumber=%d\n",SectorNumber, PageNumber);
