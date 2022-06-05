@@ -17,30 +17,31 @@ void _docolon(void){ Notify("This is _docolon.\n") }
 void _docode (void){ Notify("This is _docode.\n") }  
 //
 char wordname[32];
-void TRY_Code_Word(char *str){                                // lookup and execute a code word by its string name 
+void TRY_Code_Word(char *str){                      // lookup and execute a code word by its string name 
 DictEntry *entry;
 //      
   strcpy(wordname, str); PushP = (int32_t)wordname; // put a word name on the stack
-  _find();                                          // get the Head address of the word to execute, or 0 if  not found
-  if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
-  M.WP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
-  entry = (DictEntry*) &M.data32[M.WP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
-  for(int32_t i=0;i<entry->NumParam;i++){
-    ((void(*)(void)) M.data32[(entry->pfa)+i])();   // call the function(s), they will start with docolon() or docode() or literal() or variable(),...
-  }
+  do{
+    _find();                                          // get the Head address of the word to execute, or 0 if  not found
+    if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
+    M.IP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
+    entry = (DictEntry*) &M.data32[M.IP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
+    ((void(*)(void)) M.data32[(entry->pfa)])();   // call the function(s), they will start with docolon() or docode() or literal() or variable(),...
+  }while(true);  
 }
 //
-void TRY_Colon_Word(char *str){                                // lookup and execute a colon word by its string name 
+void TRY_Colon_Word(char *str){                     // lookup and execute a colon word by its string name 
 DictEntry *entry;
 //      
   strcpy(wordname, str); PushP = (int32_t)wordname; // put a word name on the stack
-  _find();                                          // get the Head address of the word to execute, or 0 if  not found
-  if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
-  M.WP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
-  entry = (DictEntry*) &M.data32[M.WP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
-  for(int32_t i=0;i<entry->NumParam;i++){
-    ((void(*)(void)) M.data32[(entry->pfa)+i])();   // call the function(s), they will start with docolon() or docode() or literal() or variable(),...
-  }
+  do{
+    _find();                                          // get the Head address of the word to execute, or 0 if  not found
+    if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
+    M.WP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
+    entry = (DictEntry*) &M.data32[M.WP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
+    M.WP = entry->pfa;
+    PushR = M.WP +1;
+  }while(true);
 }
 //
 void _store(void)        { pA32 = (int32_t*)PopP; *pA32  =  PopP;  }                            // ( x addr -- )       store x at addr

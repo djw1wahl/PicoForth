@@ -3,9 +3,9 @@
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
 #ifdef PICO
-#include "picoprimitivesGPIO.h"
-#include "picoPrimitivesADC.h"
-#include "picoStoreSPI.h"
+#include "PicoPrimitivesGPIO.h"
+#include "PicoPrimitivesADC.h"
+#include "PicoStoreSPI.h"
 #endif
 //
 void DefHeader(char* _name, int32_t _immediate, int32_t _hidden){
@@ -185,5 +185,6 @@ void BuildCodeEntries(int32_t where){
 }
 //
 void BuildWordEntries(int32_t where){
-  DefHeader( "DOG", NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("SWAP"); InsertWord("NEXT");
+  DefHeader( "NEXT", NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("SWAP"); 
+  DefHeader( "DOG",  NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("SWAP"); InsertWord("NEXT");
 }

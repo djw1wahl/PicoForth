@@ -1,7 +1,7 @@
 #include "Common.h"
 #ifdef PICO
 #include "hardware/gpio.h"
-#include "PICOprimitivesGPIO.h"
+#include "PicoPrimitivesGPIO.h"
 #include "StackPrimitives.h"
 //
 int32_t m, n;

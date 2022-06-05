@@ -10,8 +10,8 @@ void forth(void){
   ClearMemory();
   BuildCodeEntries(DICTINARY_START);
   BuildWordEntries(M.HERE);
-  TRY_Code_Word("SWAP");
-  TRY_Colon_Word("DOG");
+  //TRY_Code_Word("SWAP");
+  //TRY_Colon_Word("DOG");
   //
 #ifdef RUN_STACK_TESTS
   TestStkOps();
