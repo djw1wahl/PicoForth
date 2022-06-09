@@ -77,6 +77,8 @@ void _bitsor(void);
 void _bitsxor(void);
 void _bitsnot(void);
 //
+void _docodetest(void);
+//
 void _tor(void);
 void _fromr(void);
 void _rspfetch(void);

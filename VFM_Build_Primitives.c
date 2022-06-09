@@ -185,6 +185,6 @@ void BuildCodeEntries(int32_t where){
 }
 //
 void BuildWordEntries(int32_t where){
-  DefHeader( "NEXT", NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("SWAP"); 
-  DefHeader( "DOG",  NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("SWAP"); InsertWord("NEXT");
+  DefHeader( "CODE_WORD_TEST", NADAZ, NADAZ); InsertCode((int32_t) _docode); InsertCode((int32_t)_docodetest); InsertCode((int32_t)_docodetest); 
+  DefHeader( "CWT",  NADAZ, NADAZ); InsertCode((int32_t) _docolon); InsertWord("CODE_WORD_TEST"); InsertWord("CODE_WORD_TEST");
 }

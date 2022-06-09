@@ -12,7 +12,7 @@ int i;
   M.LATEST=0;
   M.HERE=0;
   M.BASE=0;  
-  M.IP     =0;
+  M.I      =0;
   M.ridx   =0;
   M.pidx   =0;
   M.fidx   =0;
