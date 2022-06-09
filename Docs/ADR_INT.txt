@@ -1,0 +1,37 @@
+----------------------------------------------------------------------------------------------------------------------------
+I == pointer to step thru a code word
+
+CODE>	C	_docode	_code0	_code1	_rtn
+CODE>	D	_docode	_code2	_rtn
+: B	C D ;
+: A	B ;
+
+At the Ok> I == 0
+
+A B C _code0 _code1 D _code2 EXIT(B) EXIT(A)
+----------------------------------------------------------------------------------------------------------------------------
+Ok> A <cr>
+	// what happens?
+	// the DICT location of "A" is put on the data stack by _find						( A - )R
+	// Note: at this point I == 0 as per waiting for a command at the prompt.
+	_execute 
+	   I <= Pop DICT location of "A".													( - )R
+		_docolon(I==A)
+			I <= B ;	Rstack++ = I +1 									   			( EXIT(A) - )R
+			_docolon(I==B)
+				I <= C ;	Rstack++ = I +1					 							( EXIT(A) D - )R
+				_docode(I==C)
+					_code0
+					_code1
+					_rtn 
+						I <= PopR(D)	Rstack++ = I +1									( EXIT(A) EXIT(B) - )R
+				_docode(I==D)
+					_code2
+					_rtn
+						I <= PopR(EXIT(B))	Rstack++ = I +1								( EXIT(A) - )R
+						_docolon(I==EXIT(B))
+							I <= PopR(EXIT(A))											( - )R
+							_docolon(I==EXIT(A))
+								I <= PopR(0)
+								_docolon(I == 0 == QUIT)
+
