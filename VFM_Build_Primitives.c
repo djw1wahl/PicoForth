@@ -213,7 +213,10 @@ void BuildWordEntries(int32_t where){
 
   DefHeader( "SWP0",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT");  
 
-  DefHeader( "SWP",       NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("SWP0");       
+  DefHeader( "SWP1",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT");  
+
+  DefHeader( "SWP",       NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("SWP0");  
+                                                                            InsertWord("SWP1");     
                                                                             InsertWord("EXIT");
                                                                             
   DefHeader( "BUG",       NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("BUG0");       
