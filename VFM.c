@@ -3,11 +3,7 @@
 #include "SystemPrimitives.h"
 #include "VFM_Build_Primitives.h"
 #include "VFM.h"
-#ifdef PICO
-#include "PicoPrimitivesGPIO.h"
-#include "PicoPrimitivesADC.h"
-#include "PicoStoreSPI.h"
-#endif
+//
 //--------------------------HERE BE DRAGONS------------------------------------------------------------------------------
 #define HEADINDEX2PTR(index) ((DictEntry*) &M.data32[index])
 #define aPC ((DictEntry*)M.W)->PC
@@ -33,7 +29,7 @@ Interpret:
   switch(op){
     case next:       { 
                        M.W = PopR;            
-                       if(M.W == 0)goto Exit_Interpret;                                 
+                       if(M.W == 0)goto Exit_Interpret; // is this correct way to exit?                                
                        _interpret(); // Dragon Fire                                                                                                 
                      } break;
     case docolon:    {                       
@@ -49,16 +45,22 @@ Interpret:
                        Notify(((DictEntry*)M.W)->Name); 
                        
                        aPC += 2;
-                       _interpret(); // Dragon Fire and more magic.
+                       _interpret(); // Dragon Fire 
                        aPC  = 0;
                        //       
                      } break;
-    case docode:     { for(int32_t i=1; i<((DictEntry*) M.W)->NumParam; i++){  
-                         ((void(*)(void)) M.data32[((DictEntry*) M.W)->cfa+i]) ();        
-                       }       
+    case docode:     { 
+                       int32_t i=0;
+                       do{ // this calls the primitives in sequence until _rtn() which changes <op> to next. 
+                           ((void(*)(void)) M.data32[((DictEntry*) M.W)->cfa + (++i)]) ();        
+                       }while(op == docode);
                      } break;
-    case doliteral:  { } break;
-    case doconstant: { } break;
+    case doliteral:  { 
+                     } break;
+    case doconstant: { 
+                     } break;
+    case dovariable: { 
+                     } break;
     case rtn:        { op = next; } break;
   }
   goto Interpret;
