@@ -1,37 +1,77 @@
-----------------------------------------------------------------------------------------------------------------------------
-I == pointer to step thru a code word
+D == dictionary
 
-CODE>	C	_docode	_code0	_code1	_rtn
-CODE>	D	_docode	_code2	_rtn
-: B	C D ;
-: A	B ;
+	:			:			:			Code>		Code>		Code>		Code>
+	________	________	________	________	________	________	________
+	10	A		20	B		30	C		40	SWAP	50	ROT		60	EXIT	70	~
+	________	________	________	________	________	________	________
+pfa		dcol		dcol		dcol		dcod		dcod		dcod		dcod
+	________	________	________	________	________	________	________
++1		B			C			SWAP		_swp		_rot		_ext		_~
+	________	________	________	________	________	________	________
++2		~			EXIT		ROT			_rtn		_rtn		_rtn		_rtn
+	________	________	________	________	________	________	________
++3		EXIT					EXIT
+	________				________
+		
+		
+oK> A
+	[Execution Sequence]
+	A docolon B docolon C docolon Swap docode _swp _rtn ROT docode _rot _rtn 
+	EXIT docode _ext _rtn EXIT docode _ext _rtn ~ docode _~ _rtn EXIT docode _ext _rtn
+		
+_rtn() 		== {  }
 
-At the Ok> I == 0
+_ext() 		== { I = PopR }
 
-A B C _code0 _code1 D _code2 EXIT(B) EXIT(A)
-----------------------------------------------------------------------------------------------------------------------------
-Ok> A <cr>
-	// what happens?
-	// the DICT location of "A" is put on the data stack by _find						( A - )R
-	// Note: at this point I == 0 as per waiting for a command at the prompt.
-	_execute 
-	   I <= Pop DICT location of "A".													( - )R
-		_docolon(I==A)
-			I <= B ;	Rstack++ = I +1 									   			( EXIT(A) - )R
-			_docolon(I==B)
-				I <= C ;	Rstack++ = I +1					 							( EXIT(A) D - )R
-				_docode(I==C)
-					_code0
-					_code1
-					_rtn 
-						I <= PopR(D)	Rstack++ = I +1									( EXIT(A) EXIT(B) - )R
-				_docode(I==D)
-					_code2
-					_rtn
-						I <= PopR(EXIT(B))	Rstack++ = I +1								( EXIT(A) - )R
-						_docolon(I==EXIT(B))
-							I <= PopR(EXIT(A))											( - )R
-							_docolon(I==EXIT(A))
-								I <= PopR(0)
-								_docolon(I == 0 == QUIT)
+_docolon 	== { PushR = I; I = D[Word(++pfa)]; }
+
+_docode		== { PushR = I; I = D[Word(++pfa)]; P = PopR; D[P(pfa+i)](); }
+		
+	Execute(I = _find(A)) 														( - )
+		I = A(pfa)() 	// call to A.docolon									I == A
+			_docolon{
+				PushR = I; 														( A - )
+				I = D[I(++pfa)];												I == B
+				D[B(pfa)](); // call to B.docolon
+				_docolon{
+					PushR = I; 													( A B - )
+					I = D[I(++pfa)];											I == C
+					D[C(pfa)](); // call to C.docolon			
+					_docolon{	
+						do{															1st							2nd							3rd
+							PushR = I; 											( A B C - )					( A B C ROT - )				( A B C EXIT - )
+							I = D[I(++pfa)];									I == SWAP					I == ROT					I == EXIT
+							D[C(pfa)](); // call to SWAP.docode	then ROT.docode then EXIT.docode
+							_docode{
+								PushR = I; 										( A B C SWAP - )			( A B C ROT - )				( A B C - )
+								I = D[I(++pfa)];								I == ROT					I == EXIT					I == C
+								P = PopR										( A B C - )					( A B C - )
+								for(i=0;i<number_of_primitives;i++){
+									D[P(pfa+i)]();	// call to _swp,..._rtn	
+									--OR--
+									D[P(pfa+i)]();	// call to _rot,..._rtn	
+									--OR--
+									D[P(pfa+i)]();	// call to _ext,..._rtn		
+									_ext
+										I == PopR
+								}				
+							}
+						}while();				
+					}
+				}
+			}
+			
+			
+			
+
+
+
+
+
+
+
+
+
+
+
 

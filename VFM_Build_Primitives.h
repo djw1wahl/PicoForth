@@ -1,22 +1,24 @@
-#define IMMED   0x01
-#define HIDEN   0x01
-#define NADAZ   0x00
-#define LENMASK 0x1F
+#define IMMED     0x01
+#define HIDEN     0x02
+#define NADAZ     0x00
+#define LENMASK   0x1F
 //
 typedef struct{
   int32_t  Link;
   int8_t   Len;               // len in lower 5 bits, 0x1F
-  int8_t   Immediate;         // Immediate == bit 5,  0x20
-  int8_t   Hidden;            // Hidden    == bit 6,  0x40
+  int8_t   Flags;             // Immediate == 0x01, Hidden == 0x02
+  int8_t   PC;                // Program Counter for this word
   int8_t   NumParam;          // count of parameters after Name
-  int32_t  pfa;               // points beyond Name, where parameters are stored by <comma> or InsertParameters()
+  int32_t  cfa;               // points beyond Name, where parameters are stored by <comma> or InsertParameters()
   char     Name[32]; 
 }DictEntry;
 //
 void DefHeader(char*, int32_t, int32_t);
-void InsertCode(int32_t);
+void Insert(int32_t);
 void InsertWord(char*);
 void BuildCodeEntries(int32_t);
 void BuildWordEntries(int32_t);
+//
 void Dump(int32_t);
-void PrintDictEntries(void);
+DictEntry* ViewEntry(char*);
+void PrintDictEntries(char*, char*);

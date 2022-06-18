@@ -1,0 +1,90 @@
+//--------------------------HERE BE DRAGONS------------------------------------------------------------------------------
+#ifdef VERBOSE_VFM
+int32_t TabCounter = 0;   
+char tabs[40]; 
+#endif
+//
+enum DoThis{ execute, docolon, docode, rtn }op;
+//
+//#define _RUN_(N) ((void(*)(void)) M.data32[((DictEntry*) &M.data32[M.I])->cfa+N]) ();
+// Explaination:  Given M.I, 
+//                Create adr of the location of a DictEntry,
+//                Get the content of the cfa, which is in itself an index into M.data32
+//                Use the index to lookup the stored number
+//                Cast the number as a function pointer 
+//                Call the function: _docolon, _docode,... etc
+//
+#define _RUN_     M.W = ((DictEntry*) &M.data32[M.I])->cfa; M.I++; ((void(*)(void)) M.data32[M.W]) ();
+// Explaination:  Given M.I, 
+//                Create adr of the location of a DictEntry,
+//                Get the content of the cfa, which is in itself an index into M.W
+//                Use the index to lookup the stored number
+//                Cast the number as a function pointer 
+//                Call the function: _docolon, _docode,... etc
+//
+void _rtn(void)    { op = rtn;     }
+void _docode (void){ op = docode;  }  
+void _docolon(void){ op = docolon; }
+void _execute(void){ op = execute; }
+//
+void _interpret(void){
+  op = execute;
+  //
+Interpret:
+  switch(op){
+    //
+    case execute: {   //--------------------------------
+#ifdef VERBOSE_VFM
+      strcpy(tabs,"");
+      Notify("Execute "); PrintNumber(M.I ); PrintBuf(((DictEntry*) &M.data32[M.I ])->Name); Notify("\n");
+#endif
+      _RUN_ 
+    } break;
+    //
+    case docolon: {   //--------------------------------
+      PushR = M.I;
+#ifdef VERBOSE_VFM
+      Notify(tabs); Notify("Pushing "); PrintNumber(TopR); PrintBuf(((DictEntry*) &M.data32[TopR])->Name); Notify("\n");
+#endif
+      M.I   = M.W++;
+#ifdef VERBOSE_VFM
+      if(TabCounter !=0){ strcat(tabs,"\t"); if(TabCounter < 40){ TabCounter++; } } else { TabCounter++; }  
+      Notify(tabs); Notify("RUN   = "); PrintNumber(M.I ); PrintBuf(((DictEntry*) &M.data32[M.I ])->Name); Notify("\n");
+#endif
+      _RUN_     
+    } break;
+    //
+    case docode: {   //--------------------------------
+      for(int32_t i=0; i<((DictEntry*)&M.data32[M.I])->NumParam-1; i++){  
+#ifdef VERBOSE_VFM
+        Notify(tabs); Notify("Code>   "); PrintNumber(M.I ); PrintBuf(((DictEntry*) &M.data32[M.I ])->Name); Notify("\n");  
+#endif
+        _RUN_ 
+      }       
+    } break;
+    //
+    case rtn:    {   //--------------------------------      
+      M.I = PopR;   
+#ifdef VERBOSE_VFM  
+      tabs[strlen(tabs)-1] = (char)0;
+      Notify(tabs); Notify("Poping  "); PrintNumber(M.I); PrintBuf(((DictEntry*) &M.data32[M.I ])->Name); Notify("\n");
+#endif
+      _RUN_       
+    } break;
+  }// end switch(op)
+  //
+  goto Interpret;
+  //
+Exit_Interpret: 
+  return;
+}
+//
+void DemoUsingVFM(char* demo_this_word){
+  PushP = (int32_t) demo_this_word; // push a pointer to the word name on the Pstack
+  _find();
+  M.I = PopP; // get result of 'find'
+  if(M.I == 0){ sprintf(buf,"%s Not Found.\n", demo_this_word); PrintBuf(buf);  return; }
+  _interpret(); // M.I contains Index of M.Data32[] to run
+  Notify("--Success--\n");
+}  
+//--------------------------DRAGONS ABOVE--------------------------------------------------------------------------------

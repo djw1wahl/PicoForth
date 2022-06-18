@@ -1,7 +1,3 @@
-void _fexit(void);
-void _fnext(void);
-void _docolon(void);
-void _docode(void);
 //
 void _store(void);
 void _fetch(void);
@@ -23,12 +19,9 @@ void _find(void);
 #ifdef TEST_FIND
   void testfind(char*);
 #endif
-void TRY_Code_Word(char *);
-void TRY_Colon_Word(char *);
 //
 void _tcfa(void);
 void _tdfa(void);
-void _interpret(void);
 void _create(void);
 void _comma(void);
 void _lbrac(void);
@@ -45,4 +38,3 @@ void _litstring(void);
 void _tell(void);
 void _quit(void);
 void _char(void);
-void _execute(void);
