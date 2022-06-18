@@ -6,54 +6,6 @@
 int32_t  iA32, *pA32;
 int8_t   *pA8, *pB8;
 //
-void _execute(void){ }
-//
-void _rtn(void){
-   Notify("This is _rtn\n.") 
-   M.I = PopR;
-   PushR M.I +1;
-}
-//
-void _exit(void){ 
-  Notify("This is _exit.\n") 
-  M.I = PopR;
-} 
-//
-void _docolon(void){ 
-  Notify("This is _docolon.\n") 
-}
-//  
-void _docode (void){ 
-  Notify("This is _docode.\n") 
-}  
-//
-char wordname[32];
-void TRY_Code_Word(char *str){                      // lookup and execute a code word by its string name 
-DictEntry *entry;
-//      
-  strcpy(wordname, str); PushP = (int32_t)wordname; // put a word name on the stack
-  _find();                                          // get the Head address of the word to execute, or 0 if  not found
-  if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
-  M.IP = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
-  entry = (DictEntry*) &M.data32[M.IP];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
-  for(int32_t i=0;i<entry->NumParam;i++){
-    ((void(*)(void)) M.data32[(entry->pfa)+i])();   // call each the function in the parameter list
-  }
-}
-//
-void TRY_Colon_Word(char *str){                     // lookup and execute a colon word by its string name 
-DictEntry *entry;
-//      
-  strcpy(wordname, str); PushP = (int32_t)wordname; // put a word name on the stack
-  _find();                                          // get the Head address of the word to execute, or 0 if  not found
-  if(TopP == 0){ sprintf(buf,"Can't find that word: %s\n", wordname); PrintBuf(buf); return; } // make sure word name is found 
-  M.I = PopP;                                      // Head index of found word at M.data32[idx] is stored at WP
-
-  entry = (DictEntry*) &M.data32[M.I];             // entry struct now pointing to the word to execute, pfa points beyond NAME[] where first location is the cfa
-  PushR = M.I +1;
-  M.I = entry->pfa;
-}
-//
 void _store(void)        { pA32 = (int32_t*)PopP; *pA32  =  PopP;  }                            // ( x addr -- )       store x at addr
 void _fetch(void)        { pA32 = (int32_t*)PopP;  PushP   = *pA32;  }                          // ( a-addr -- x )     read value stored at addr. 
 void _addstore(void)     { pA32 = (int32_t*)PopP;  iA32  = *pA32 + PopP; *pA32 = iA32; }  // ( n | u a-addr -- ) add n to value at addr.
@@ -118,18 +70,18 @@ void _number(void)       { // NOTE: unlike the ANS Forth this forth uses C strin
 #endif
 //
 void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which are null terminated
-                  // ( string -- dict_adr_of_head | zero_if_not_found) )
+                  // ( string -- dict_idx_of_head | zero_if_not_found) )
                   //
                   char*   str  = (char*)PopP;     // get the string adr
                   int32_t latest = M.LATEST;
                   do{
                       DictEntry *start = (DictEntry*) &M.data32[latest] ;
                       if(strcmp(start->Name, str) == 0){ // found                        
-                        if(start->Hidden){ // do not FIND Hidden entries
+                        if(start->Flags & HIDEN){ // do not FIND Hidden entries
                           PushP = 0; // not found
                           return;
                         }else{ // Found 
-                          PushP = latest;
+                          PushP = latest; // pushing index of entry
                           return; // this is where a successful find exits
                         }
                       }
@@ -137,6 +89,8 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
                   }while(latest > 0);     
                   PushP = 0; // not found             
 }
+//
+//
 #ifdef TEST_FIND
   void testfind(char* astring){
     DictEntry* entry;
@@ -154,14 +108,11 @@ void _find(void){ // NOTE: unlike the ANS Forth this forth uses C strings which 
 #endif
 void _tcfa(void){ 
                     DictEntry*    entry = (DictEntry*) PopP;
-                    PushP = (int32_t) M.data32[entry->pfa]; // now TopP contains (void)(*)(void) of codetype for this word
+                    PushP = (int32_t) M.data32[entry->cfa]; // now TopP contains (void)(*)(void) of codetype for this word
 }
 void _tdfa(void){ 
                     DictEntry*    entry = (DictEntry*) PopP;
-                    PushP = (int32_t) M.data32[(entry->pfa)+4]; // now TopP contains first parameter word, agnostic type
-}
-void _interpret(void){ 
-  
+                    PushP = (int32_t) M.data32[(entry->cfa)+4]; // now TopP contains first parameter word, agnostic type
 }
 void _create(void){ }
 void _comma(void){ }
@@ -179,4 +130,3 @@ void _litstring(void){ }
 void _tell(void){ }
 void _quit(void){ }
 void _char(void){ }
-

@@ -5,13 +5,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 //
-#define PICO
+//#define PICO
 #define Notify(S) sprintf(buf,"%s",S); PrintBuf(buf);
 //
 //#define RUN_STACK_TESTS
 //#define TEST_NUMBER
 //#define TEST_FIND
-//#define PRINT_DICT_ENTRIES
+#define VERBOSE_VFM 
+#define PRINT_DICT_ENTRIES
 //
 #define FLASH_SECTORS_AVAILABLE 256
 #define FLASH_SECTORS_OFFSET 1024 * 1024
@@ -43,7 +44,7 @@ typedef struct{
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
   int32_t  STATE, LATEST, HERE, BASE, S0;
-  int32_t  I, PicoIDbuf;
+  int32_t  I, W, PicoIDbuf;
   int8_t   ridx, pidx, fidx;
 }MemoryImage;
 //
