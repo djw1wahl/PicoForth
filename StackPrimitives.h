@@ -32,6 +32,8 @@
 // ( L5thP, L4thP, L3rdP, L2ndP, TopP, H2ndP, H3rdP, H4thP, H5thP )
 //
 #define DecP M.pidx--;
+#define DecR M.ridx--;
+#define DecF M.fidx--;
 //
 #define PushR Push(M.rstack,M.ridx)
 #define PopR  Pop (M.rstack,M.ridx)

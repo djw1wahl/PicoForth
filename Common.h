@@ -44,7 +44,7 @@ typedef struct{
   int32_t  pstack[STACKSIZE];
   float    fstack[STACKSIZE];  
   int32_t  STATE, LATEST, HERE, BASE, S0;
-  int32_t  I, W, PicoIDbuf;
+  int32_t  I, W, PC, PicoIDbuf;
   int8_t   ridx, pidx, fidx;
 }MemoryImage;
 //

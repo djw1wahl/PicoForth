@@ -16,8 +16,8 @@ void forth(void){
   TestStkOps();
 #endif
 #ifdef PRINT_DICT_ENTRIES
-  //Dump(0x24C);
-  Dump(DICTINARY_START);
+  Dump(0x0254);
+  //Dump(DICTINARY_START);
   //PrintDictEntries("WORD_TEST", "FIND");
 #endif 
 #ifdef TEST_NUMBER

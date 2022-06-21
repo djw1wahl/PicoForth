@@ -21,23 +21,21 @@ int32_t len, padcount=1;
   }while(true);
   entry->Flags     |= _immediate;
   entry->Flags     |= _hidden;
-  entry->PC         = 0;  
   entry->Link       = M.LATEST;
+  entry->This       = M.HERE;  
   M.LATEST          = M.HERE;
-  M.HERE           += ( sizeof(entry->Link) + \
-                        sizeof(entry->Len) + \
-                        sizeof(entry->Flags) + \
-                        sizeof(entry->PC) + \
-                        sizeof(entry->NumParam) + \
-                        sizeof(entry->cfa) + \
-                        strlen(_name) + 
+  M.HERE           += ( sizeof(entry->Link)   + \
+                        sizeof(entry->Len)    + \
+                        sizeof(entry->Flags)  + \
+                        sizeof(entry->This)   + \
+                        sizeof(entry->cfa)    + \
+                        strlen(_name)         + 
                         padcount ) /4;  
   entry->cfa        = M.HERE;
 }
 //
 void Insert(int32_t parameter){ // a LOT Like <comma>
   DictEntry *entry = (DictEntry *) &(M.data32[M.LATEST]);  
-  entry->NumParam++;
   M.data32[M.HERE++] = parameter;
 }
 //
@@ -47,7 +45,7 @@ void InsertWord(char* TheName){
   if(TopP == 0){ sprintf(buf,"InsertWord can't find that name: %s\n", TheName); PrintBuf(buf); return; } 
   int32_t WordHead = PopP;
   DictEntry *_head = (DictEntry *) &(M.data32[WordHead]);   
-  Insert((int32_t) _head); // we insert the adr of the target DictEntry                     
+  Insert((int32_t) _head->cfa); // we insert the cfa of the target DictEntry                     
 }
 //
 #ifdef PRINT_DICT_ENTRIES
@@ -59,7 +57,7 @@ union{
   char cval[4];
 }vals;
   do{
-    sprintf(buf," %4.4X %8.8X %8.8X ",start, (int32_t) &M.data32[start], M.data32[start]); PrintBuf(buf);
+    sprintf(buf," %8.8X %8.8X %8.8X ",start, (int32_t) &M.data32[start], M.data32[start]); PrintBuf(buf);
     vals.val = M.data32[start];
     if(M.data32[start++] == 0){ count++; }else { count = 0; }
     for(int k=0;k<4;k++){
@@ -97,12 +95,11 @@ DictEntry* ViewEntry(char* astring){
   sprintf(buf,      "%s   Link: %8.8X \n", dashs, entry->Link);     PrintBuf(buf);  
   sprintf(buf,"           Name: %s\n"    , entry->Name   );         PrintBuf(buf);
   sprintf(buf,"Memory  Address: %8.8X \n", (int32_t)entry);         PrintBuf(buf);
-  sprintf(buf,"Memory    Index: %8.8X \n", idx);                    PrintBuf(buf);
+  //sprintf(buf,"Memory    Index: %8.8X \n", idx);                    PrintBuf(buf);
   sprintf(buf,"         Length: %2.2d \n", entry->Len    );         PrintBuf(buf);
-  sprintf(buf,"          Flags: %s \n", flags);                     PrintBuf(buf);
-  sprintf(buf,"           Type: %s \n", "Unused");                  PrintBuf(buf);
-  sprintf(buf,"Parameter Count: %2.2d \n",entry->NumParam );        PrintBuf(buf);
-  sprintf(buf,"            CFA: %8.8X \n",entry->cfa );             PrintBuf(buf);
+  sprintf(buf,"          Flags: %s \n",    flags);                  PrintBuf(buf);
+  sprintf(buf,"           This: %4.4X \n", entry->This);            PrintBuf(buf);
+  sprintf(buf,"            CFA: %8.8X \n", entry->cfa );            PrintBuf(buf);
 //
   return(entry);
 }
@@ -207,16 +204,20 @@ void BuildCodeEntries(int32_t where){
 }
 //
 void BuildWordEntries(int32_t where){
-  DefHeader( "EXIT",      NADAZ, NADAZ);      Insert((int32_t) _docode);    Insert((int32_t) _rtn);  
+  
+  DefHeader( "EXIT",      NADAZ, NADAZ);      Insert((int32_t) _next);
        
   DefHeader( "BUG0",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT");
 
   DefHeader( "SWP0",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT");  
 
-  DefHeader( "SWP1",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT");  
+  DefHeader( "SWP1",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT"); 
+
+  DefHeader( "SWP2",      NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("EXIT");     
 
   DefHeader( "SWP",       NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("SWP0");  
                                                                             InsertWord("SWP1");     
+                                                                            InsertWord("SWP2");
                                                                             InsertWord("EXIT");
                                                                             
   DefHeader( "BUG",       NADAZ, NADAZ);      Insert((int32_t) _docolon);   InsertWord("BUG0");       
