@@ -7,8 +7,7 @@ typedef struct{
   int32_t  Link;
   int8_t   Len;               // len in lower 5 bits, 0x1F
   int8_t   Flags;             // Immediate == 0x01, Hidden == 0x02
-  int8_t   PC;                // Program Counter for this word
-  int8_t   NumParam;          // count of parameters after Name
+  int16_t  This;              // The Index of this word
   int32_t  cfa;               // points beyond Name, where parameters are stored by <comma> or InsertParameters()
   char     Name[32]; 
 }DictEntry;

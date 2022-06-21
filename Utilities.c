@@ -14,6 +14,7 @@ int i;
   M.BASE=0;  
   M.I      =0;
   M.W      =0;
+  M.PC     =0;
   M.ridx   =0;
   M.pidx   =0;
   M.fidx   =0;
